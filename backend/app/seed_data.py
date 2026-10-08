@@ -1,29 +1,123 @@
+import json
 from sqlalchemy.orm import Session
 from .models import UserProfile
 
 
 def seed_database(db: Session):
     """
-    Initializes default user profile only.
-    ZERO HARDCODED OFFERS: all job offers are populated through real verified scraping.
+    Initializes default user profile tailored to Léo Lombardini's CV (EDHEC M1 Financial Markets).
+    ZERO hardcoded mock offers.
     """
     profile = db.query(UserProfile).first()
     if not profile:
         profile = UserProfile(
             full_name="Léo Lombardini",
-            email="leo.lombardini@etudiant.univ.fr",
-            phone="+33 6 12 34 56 78",
-            school="Grande École d'Ingénieur / Dauphine M203",
-            degree_level="Master 2 / Fin d'études (PFE)",
-            target_roles='["Assistant Trader", "Quant Research", "Structuring Produits Structurés"]',
-            target_locations='["Paris", "Londres", "Genève"]',
-            target_asset_classes='["Equity Derivatives", "Rates & FX", "Volatility", "Commodities"]',
-            technical_skills='["Python", "C++", "Calcul Stochastique", "Greeks & Pricing", "SQL", "Bloomberg"]',
-            target_duration="6 mois",
-            target_start_period="Janvier - Avril 2027",
-            min_salary=2400,
-            bio_summary="Étudiant passionné par la finance quantitative, la gestion des risques de marché et le pricing d'options exotiques. Recherche un stage de fin d'études stimulant sur un desk de trading ou de structuring.",
+            email="llombardini.leo@gmail.com",
+            phone="07 85 42 69 11",
+            school="EDHEC Business School - Master in Finance",
+            degree_level="Master 1 Financial Markets (PGE)",
+            target_roles=json.dumps([
+                "Assistant Trader",
+                "Quant Research",
+                "Quantitative Trading",
+                "Structuring Produits Structurés",
+                "Macro Trading / Research",
+                "Rates & FX Desk",
+                "Sales FICC / Institutional",
+                "Market Risk Analytics"
+            ]),
+            target_locations=json.dumps([
+                "Paris",
+                "Londres",
+                "Genève",
+                "Francfort",
+                "Luxembourg"
+            ]),
+            target_asset_classes=json.dumps([
+                "Equity Derivatives & Convexity",
+                "Rates & Fixed Income",
+                "Foreign Exchange (FX)",
+                "Commodities & Energy",
+                "Cross-Asset Fair Value",
+                "Systematic & Multi-Asset"
+            ]),
+            technical_skills=json.dumps([
+                "Python",
+                "MQL5 (MT5)",
+                "Machine Learning Finance",
+                "Backtesting & Stratégies",
+                "Macroeconomic Modeling",
+                "Courbes de Taux & Liquidité",
+                "Pricing Dérivés & Grecs",
+                "Payoffs Asymétriques",
+                "Excel",
+                "Bloomberg"
+            ]),
+            target_duration="6 mois (Off-cycle)",
+            target_start_period="Juin 2027",
+            min_salary=2500,
+            bio_summary=(
+                "Master 1 Finance à l'EDHEC Business School (Programme Grande École, filière Financial Markets). "
+                "Fondateur de Horacle Capital : conception de la plateforme quantitative Horacle Hub en Python "
+                "(scoring macroéconomique, indices de surprises, modèles de fair value cross-asset) et développement "
+                "d'un pipeline de trading systématique axé sur la haute convexité et les payoffs asymétriques. "
+                "Recherche un stage off-cycle de 6 mois à compter de juin 2027 en trading, recherche quantitative ou structuring."
+            ),
             serendipity_exploration_weight=0.35
         )
         db.add(profile)
+        db.commit()
+    else:
+        # Update existing profile with exact CV info
+        profile.full_name = "Léo Lombardini"
+        profile.email = "llombardini.leo@gmail.com"
+        profile.phone = "07 85 42 69 11"
+        profile.school = "EDHEC Business School - Master in Finance"
+        profile.degree_level = "Master 1 Financial Markets (PGE)"
+        profile.target_roles = json.dumps([
+            "Assistant Trader",
+            "Quant Research",
+            "Quantitative Trading",
+            "Structuring Produits Structurés",
+            "Macro Trading / Research",
+            "Rates & FX Desk",
+            "Sales FICC / Institutional",
+            "Market Risk Analytics"
+        ])
+        profile.target_locations = json.dumps([
+            "Paris",
+            "Londres",
+            "Genève",
+            "Francfort",
+            "Luxembourg"
+        ])
+        profile.target_asset_classes = json.dumps([
+            "Equity Derivatives & Convexity",
+            "Rates & Fixed Income",
+            "Foreign Exchange (FX)",
+            "Commodities & Energy",
+            "Cross-Asset Fair Value",
+            "Systematic & Multi-Asset"
+        ])
+        profile.technical_skills = json.dumps([
+            "Python",
+            "MQL5 (MT5)",
+            "Machine Learning Finance",
+            "Backtesting & Stratégies",
+            "Macroeconomic Modeling",
+            "Courbes de Taux & Liquidité",
+            "Pricing Dérivés & Grecs",
+            "Payoffs Asymétriques",
+            "Excel",
+            "Bloomberg"
+        ])
+        profile.target_duration = "6 mois (Off-cycle)"
+        profile.target_start_period = "Juin 2027"
+        profile.bio_summary = (
+            "Master 1 Finance à l'EDHEC Business School (Programme Grande École, filière Financial Markets). "
+            "Fondateur de Horacle Capital : conception de la plateforme quantitative Horacle Hub en Python "
+            "(scoring macroéconomique, indices de surprises, modèles de fair value cross-asset) et développement "
+            "d'un pipeline de trading systématique axé sur la haute convexité et les payoffs asymétriques. "
+            "Recherche un stage off-cycle de 6 mois à compter de juin 2027 en trading, recherche quantitative ou structuring."
+        )
         db.commit()

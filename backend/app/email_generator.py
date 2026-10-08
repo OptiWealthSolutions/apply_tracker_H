@@ -2,37 +2,51 @@ import urllib.parse
 from typing import Dict, Any, List
 
 
-DESK_SPECIFIC_PITCHES = {
+DESK_SPECIFIC_SUBSTANCE = {
     "Trading Flow / Exotics": (
-        "Particulièrement passionné par la dynamique des marchés de capitaux, la gestion du risque en temps réel "
-        "et le pricing des dérivés complexes, je dispose d'une solide formation quantitative (calcul stochastique, "
-        "modèle Black-Scholes et surfaces de volatilité) et d'une maîtrise avancée du développement sous Python / C++."
+        "En parallèle de mon cursus en M1 Finance de Marché à l'EDHEC, j'ai développé Horacle Hub, "
+        "une infrastructure quantitative en Python intégrant des modèles de pricing cross-asset et un pipeline "
+        "systématique calibré pour capturer des payoffs convexes et asymétriques. "
+        "Je maîtrise les mécanismes de valorisation des dérivés, la dynamique des grecs (gamma, vega, vanna-volga) "
+        "et l'exécution algorithmique sous Python et MQL5."
     ),
     "Trading Assistant / Market Making": (
-        "Animé par l'exécution rapide, le monitoring des positions de trading et le market making, "
-        "je souhaite apporter mes compétences en automatisation de flux (Python, SQL, API de marché) "
-        "et mon analyse rigoureuse des spreads et carnets d'ordres au sein de votre desk."
+        "Dans le cadre de mes travaux sur Horacle Capital, j'ai automatisé des pipelines de données financières "
+        "et de backtesting de stratégies en temps réel. Habitué au monitoring de positions et à l'analyse de spreads, "
+        "je suis immédiatement opérationnel sur l'automatisation des flux quotidiens du desk et l'aide au pricing via Python."
     ),
     "Structuring Produits Structurés": (
-        "Intéressé par la conception de payoffs sur-mesure (Autocalls, Reverse Convertibles, capital garanti) "
-        "et la relation étroite entre sales et trading, je combine rigueur mathématique et sens du produit d'investissement "
-        "pour répondre aux besoins des clients institutionnels et de gestion de fortune."
+        "Mon travail sur Horacle Hub s'articule autour de la modélisation de fair value cross-asset et de l'ingénierie "
+        "de payoffs asymétriques. J'ai une solide compréhension de la construction de structures sur-mesure (autocalls, "
+        "reverse convertibles, structures de corrélation) et de l'articulation entre trading et force de vente institutionnelle."
     ),
     "Quantitative Research / Trading": (
-        "Spécialisé en mathématiques financières appliquées, statistiques et algorithmes d'apprentissage statistique, "
-        "j'ai développé des outils de backtest et de calibrage de modèles de diffusion. Je souhaite contribuer activement "
-        "à la recherche de signaux d'alpha et à l'optimisation des stratégies quantitatives du desk."
+        "Fondateur de Horacle Capital, j'ai conçu et déployé une plateforme quantitative complète en Python intégrant des "
+        "moteurs de scoring macroéconomique, des indices de surprises économiques et des algorithmes d'apprentissage statistique. "
+        "Je dispose d'une pratique quotidienne du traitement de séries temporelles financières, du calcul stochastique "
+        "et de l'optimisation robuste de signaux d'arbitrage."
+    ),
+    "Rates & FX Desk": (
+        "Je publie régulièrement des notes de recherche macroéconomique institutionnelles (horaclecapital.com) "
+        "consacrées aux mécanismes de transmission de la liquidité des banques centrales (BCE, Fed) et à la dynamique "
+        "des courbes de taux souverains. J'associe cette vision top-down à des outils quantitatifs en Python pour modéliser "
+        "les écarts de valorisation et les flux de change."
     ),
     "Sales FICC / Institutional": (
-        "Doté d'un excellent relationnel et d'une compréhension fine des produits de taux, devises et crédit, "
-        "je souhaite accompagner vos équipes dans la couverture des comptes institutionnels, l'animation commerciale "
-        "et l'élaboration de trade ideas macro-financières pertinentes."
+        "Je combine une compréhension approfondie des marchés de taux, de devises et de crédit à une capacité d'analyse "
+        "macroéconomique rigoureuse acquise lors de la rédaction des recherches de Horacle Capital. "
+        "Mon profil me permet d'échanger avec pertinence avec des investisseurs institutionnels et de formuler des trade ideas claires."
     ),
     "Risk Management de Marché": (
-        "Sensible à la robustesse des modèles de valorisation et aux contraintes réglementaires (VaR, Expected Shortfall, "
-        "stress-tests), je souhaite mettre mes capacités analytiques au service du contrôle indépendant et de la surveillance "
-        "des risques de marché des desks opérationnels."
-    )
+        "À travers la gestion des contraintes de risque de mes portefeuilles systématiques (VaR historique, Expected Shortfall, "
+        "scénarios de stress-test de liquidité), j'ai acquis une culture du risque de marché rigoureuse et une maîtrise "
+        "des métriques quantitatives indispensables à la surveillance des expositions des desks."
+    ),
+    "Commodities & Energy": (
+        "Suivant de près les marchés de l'énergie et des matières premières au sein de mes modèles de fair value cross-asset, "
+        "je sais analyser les fondamentaux d'offre/demande, les structures de terme (contango/backwardation) et concevoir des "
+        "stratégies de couverture sous Python."
+    ),
 }
 
 
@@ -45,38 +59,47 @@ def generate_application_pitch(
     desk: str,
     direct_email: str = None
 ) -> Dict[str, Any]:
-    """Generates an institutional high-impact cover pitch and pre-filled email."""
-    desk_pitch = DESK_SPECIFIC_PITCHES.get(desk, (
-        "Passionné par les marchés financiers et disposant d'un profil quantitatif rigoureux, "
-        "je souhaite vivement mettre mes compétences au service des activités de votre équipe."
+    """
+    Génère un email et une lettre de candidature sobres, directs et institutionnels,
+    sans aucune tournure générique d'IA. Ancré sur l'expérience réelle d'EDHEC M1 Finance & Horacle Capital.
+    """
+    substance = DESK_SPECIFIC_SUBSTANCE.get(desk, (
+        "Actuellement en Master 1 Finance à l'EDHEC (Programme Grande École, filière Financial Markets), "
+        "j'ai développé une solide compétence quantitative à travers la création de Horacle Capital et de sa plateforme "
+        "propriétaire d'analyse macro et de backtesting systématique sous Python."
     ))
 
     subject = f"Candidature Stage {job_title} - {candidate_name} ({candidate_school})"
-    
+
+    # Lettre épurée, factuelle, sans fioritures
     cover_letter = f"""Madame, Monsieur,
 
-Étudiant en finance quantitative au sein de {candidate_school}, je vous adresse ma candidature pour l'offre de stage "{job_title}" au sein de {company} ({desk}).
+Actuellement étudiant en Master 1 Finance à l'EDHEC Business School (Programme Grande École, filière Financial Markets), je vous adresse ma candidature pour le stage « {job_title} » au sein de votre desk {desk} chez {company}, pour une durée de 6 mois à compter de juin 2027.
 
-{desk_pitch}
+{substance}
 
-Au cours de mon cursus académique et de mes projets personnels, j'ai notamment eu l'occasion de développer des modèles d'analyse quantitative sous Python (manipulation de données haute fréquence, pricing de dérivés, automatisation de reporting) et d'approfondir les mécanismes de microstructure des marchés.
+Mes compétences s'articulent autour de :
+- L'analyse quantitative et le développement d'outils opérationnels sous Python (pandas, numpy, backtest vectorisé et événementiel) et MQL5.
+- La modélisation macroéconomique, le pricing d'actifs et l'étude des mécanismes de transmission de liquidité.
+- Une rigueur analytique renforcée par deux années de classe préparatoire ENS D2 (économie et gestion quantitatives) avant l'EDHEC.
 
-Rejoindre {company} représenterait pour moi l'opportunité de mettre mon dynamisme, ma réactivité et ma rigueur technique au profit de l'excellence de votre desk.
+Rejoindre votre équipe représente pour moi l'opportunité de mettre directement à profit mon autonomie, ma culture financière et ma réactivité d'exécution sur le desk.
 
-Je serais honoré de pouvoir échanger avec vous lors d'un entretien afin de vous exposer plus en détail ma motivation.
-
-Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+Vous trouverez mon curriculum vitæ joint. Je me tiens à votre entière disposition pour un entretien technique.
 
 {candidate_name}
 {candidate_email}
++33 7 85 42 69 11
 """
 
     quick_pitch = (
         f"Bonjour,\n\n"
-        f"Étudiant à {candidate_school}, je postule au stage '{job_title}' ({desk}) chez {company}. "
-        f"{desk_pitch}\n\n"
-        f"Vous trouverez mon CV ci-joint. Disponible dès maintenant pour un échange.\n\n"
-        f"Bien cordialement,\n{candidate_name}"
+        f"Étudiant en Master 1 Finance à l'EDHEC (Track Financial Markets), je postule au stage '{job_title}' ({desk}) chez {company} (6 mois dès juin 2027).\n\n"
+        f"{substance}\n\n"
+        f"Mon CV est joint à ce message. Je suis disponible pour un échange technique à votre convenance.\n\n"
+        f"Bien cordialement,\n"
+        f"{candidate_name}\n"
+        f"{candidate_email} | +33 7 85 42 69 11"
     )
 
     recipient = direct_email or f"recrutement-campus@{company.lower().replace(' ', '')}.com"
@@ -87,10 +110,11 @@ Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distin
     mailto_url = f"mailto:{recipient}?{urllib.parse.urlencode(mailto_params)}"
 
     bullets = [
-        "Maîtrise Python (NumPy, Pandas, SciPy) & pricing d'options",
-        "Sensibilité aiguë au risque de marché (Greeks, VaR, stress testing)",
-        "Proactivité, rapidité d'exécution et culture des marchés financiers",
-        f"Formation d'excellence : {candidate_school}"
+        "EDHEC Business School - M1 Financial Markets (PGE) & Prépa ENS D2",
+        "Fondateur Horacle Capital : conception d'Horacle Hub (scoring macro & fair value en Python)",
+        "Modélisation quantitative, backtesting de payoffs asymétriques & convexité",
+        "Maîtrise Python (ML finance, data pipelines), MQL5, Excel, Bloomberg",
+        "Disponible dès juin 2027 pour un stage off-cycle de 6 mois"
     ]
 
     return {

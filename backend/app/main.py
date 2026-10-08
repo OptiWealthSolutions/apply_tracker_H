@@ -83,7 +83,7 @@ async def run_background_initial_sync():
     await asyncio.sleep(1)
     db = next(get_db())
     try:
-        real_offers = await sync_and_verify_real_jobs(limit_per_query=6)
+        real_offers = await sync_and_verify_real_jobs(target_min_offers=150)
         for item in real_offers:
             existing = db.query(JobOffer).filter(JobOffer.url == item["url"]).first()
             if not existing:
@@ -111,7 +111,7 @@ async def sync_real_jobs_endpoint(db: Session = Depends(get_db)):
     verifies every link with HTTP 200 checks, discards invalid/expired URLs,
     and updates the database.
     """
-    verified_jobs = await sync_and_verify_real_jobs(limit_per_query=10)
+    verified_jobs = await sync_and_verify_real_jobs(target_min_offers=150)
     
     new_added = 0
     for item in verified_jobs:
