@@ -39,6 +39,12 @@ from .email_generator import generate_application_pitch
 from .interview_prep import get_interview_prep_for_desk
 from .ats_analyzer import analyze_ats_fit
 from .cv_quality_analyzer import audit_cv_content, audit_cover_letter, CVAuditResponse, CoverLetterAuditResponse
+from .firm_expectations_and_resources import (
+    get_firm_interview_expectations,
+    get_educational_resources,
+    FirmInterviewExpectation,
+    EducationalResource,
+)
 from .seed_data import seed_database
 
 # Create DB schema tables
@@ -835,6 +841,31 @@ def audit_cover_letter_endpoint(req: CoverLetterAuditRequest):
         target_company=req.target_company or "",
         target_role=req.target_role or ""
     )
+
+
+# ==========================================================
+# FIRM EXPECTATIONS & CURATED LEARNING RESOURCES
+# ==========================================================
+@app.get("/api/firms/expectations", response_model=List[FirmInterviewExpectation])
+def get_firm_expectations_endpoint(sector: Optional[str] = Query(None)):
+    """
+    Returns specific interview expectations, testing culture,
+    and insider tips for leading investment banks, prop funds, PE and consulting firms.
+    """
+    return get_firm_interview_expectations(sector)
+
+
+@app.get("/api/resources", response_model=List[EducationalResource])
+def get_educational_resources_endpoint(
+    sector: Optional[str] = Query(None),
+    type: Optional[str] = Query(None)
+):
+    """
+    Returns organized educational resources (Videos, Research Papers,
+    Reference Books, GitHub Repos, and Trainers) for quantitative finance and investment banking.
+    """
+    return get_educational_resources(sector_filter=sector, type_filter=type)
+
 
 
 

@@ -15,6 +15,8 @@ import type {
   ATSFitBreakdown,
   CVAuditResponse,
   CoverLetterAuditResponse,
+  FirmInterviewExpectation,
+  EducationalResource,
 } from '../types';
 
 const API_BASE = '/api';
@@ -282,6 +284,25 @@ export const api = {
       }),
     });
     if (!res.ok) throw new Error("Erreur lors de l'audit de la lettre de motivation");
+    return res.json();
+  },
+
+  // Firm Expectations & Educational Resources
+  async getFirmExpectations(sector?: string): Promise<FirmInterviewExpectation[]> {
+    const url = sector && sector !== 'all' ? `${API_BASE}/firms/expectations?sector=${encodeURIComponent(sector)}` : `${API_BASE}/firms/expectations`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erreur lors du chargement des attentes par entreprise');
+    return res.json();
+  },
+
+  async getEducationalResources(sector?: string, type?: string): Promise<EducationalResource[]> {
+    const params = new URLSearchParams();
+    if (sector && sector !== 'all') params.append('sector', sector);
+    if (type && type !== 'all') params.append('type', type);
+    const queryString = params.toString();
+    const url = queryString ? `${API_BASE}/resources?${queryString}` : `${API_BASE}/resources`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erreur lors du chargement des ressources de formation');
     return res.json();
   },
 };

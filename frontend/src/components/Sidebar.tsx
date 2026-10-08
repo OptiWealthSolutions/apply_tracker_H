@@ -11,6 +11,7 @@ import {
   GraduationCap,
   FileText,
   Award,
+  BookOpen,
 } from 'lucide-react';
 import type { UserProfile } from '../types';
 
@@ -19,8 +20,20 @@ interface SidebarProps {
   setCurrentTab: (tab: string) => void;
   applicationsCount: number;
   profile: UserProfile | null;
-  onOpenPreferences: () => void;
+  onOpenPreferences?: () => void;
   onOpenCVModal?: () => void;
+}
+
+interface NavSection {
+  title: string;
+  items: {
+    id: string;
+    label: string;
+    subtext: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+    highlight?: boolean;
+  }[];
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,58 +44,89 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenPreferences,
   onOpenCVModal,
 }) => {
-  const navItems = [
+  const navSections: NavSection[] = [
     {
-      id: 'tracker',
-      label: 'Suivi Candidatures',
-      subtext: 'Tableau & Kanban',
-      icon: Briefcase,
-      badge: applicationsCount,
+      title: '1. Screening / Recherche',
+      items: [
+        {
+          id: 'bank-search',
+          label: 'Portails Carrières Directs',
+          subtext: 'Banques, M&A, PE, Audit, Conseil',
+          icon: Building2,
+          highlight: true,
+        },
+        {
+          id: 'scraper',
+          label: 'Scraper de Marché',
+          subtext: 'Google Jobs & Web',
+          icon: Search,
+        },
+      ],
     },
     {
-      id: 'bank-search',
-      label: 'Portails & Carrières Direct',
-      subtext: 'Banques, M&A, PE, Audit, Conseil',
-      icon: Building2,
-      highlight: true,
+      title: '2. Analyser',
+      items: [
+        {
+          id: 'knn',
+          label: 'Conseiller KNN & Pépites',
+          subtext: 'Plus Proche Voisin',
+          icon: Compass,
+        },
+        {
+          id: 'cv-audit',
+          label: 'Audit Qualité CV & Lettre',
+          subtext: 'Formule Google XYZ & Mots-Clés',
+          icon: Award,
+          highlight: true,
+        },
+      ],
     },
     {
-      id: 'cv-audit',
-      label: 'Audit Qualité CV & Lettre',
-      subtext: 'Formule Google XYZ & Mots-Clés',
-      icon: Award,
-      highlight: true,
+      title: '3. Postuler',
+      items: [
+        {
+          id: 'tracker',
+          label: 'Suivi Candidatures',
+          subtext: 'Tableau & Kanban',
+          icon: Briefcase,
+          badge: applicationsCount,
+        },
+      ],
     },
     {
-      id: 'preferences',
-      label: 'Préférences & Métiers',
-      subtext: 'Finance, M&A, PE, Audit, Conseil',
-      icon: Sliders,
+      title: '4. Apprendre les Prérequis',
+      items: [
+        {
+          id: 'resources',
+          label: 'Attentes Firmes & Ressources',
+          subtext: 'Vidéos, Papers, Livres & Tests',
+          icon: BookOpen,
+          highlight: true,
+        },
+        {
+          id: 'interview-prep',
+          label: 'Guide Entretien Desk',
+          subtext: 'Questions & Grecs Desk',
+          icon: GraduationCap,
+        },
+      ],
     },
     {
-      id: 'scraper',
-      label: 'Scraper de Marché',
-      subtext: 'Google Jobs & Web',
-      icon: Search,
-    },
-    {
-      id: 'knn',
-      label: 'Conseiller KNN',
-      subtext: 'Plus Proche Voisin & Pépites',
-      icon: Compass,
-    },
-    {
-      id: 'interview-prep',
-      label: 'Guide Entretien Desk',
-      subtext: 'Questions & Grecs Desk',
-      icon: GraduationCap,
-      highlight: true,
-    },
-    {
-      id: 'analytics',
-      label: 'Analyses & Pipeline',
-      subtext: 'Taux de conversion',
-      icon: BarChart3,
+      title: 'Pilotage & Configuration',
+      items: [
+        {
+          id: 'preferences',
+          label: 'Préférences & Métiers',
+          subtext: 'Cartographie tous secteurs',
+          icon: Sliders,
+        },
+        {
+          id: 'analytics',
+          label: 'Analyses & Pipeline',
+          subtext: 'Taux de conversion',
+          icon: BarChart3,
+        },
+      ],
     },
   ];
 
@@ -101,56 +145,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 MKT
               </span>
             </div>
-            <div className="text-xs text-slate-400 font-medium">Finance de Marché</div>
+            <div className="text-xs text-slate-400 font-medium">Finance & Conseil</div>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-        <div className="px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-          Espace de Travail
-        </div>
-
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setCurrentTab(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-left transition-all duration-150 ${
-                isActive
-                  ? 'bg-blue-600 text-white font-medium shadow-md shadow-blue-900/40'
-                  : 'text-slate-300 hover:bg-[#132A4A] hover:text-white'
-              }`}
-            >
-              <div className="flex items-center space-x-3 min-w-0">
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <div className="min-w-0">
-                  <div className="text-sm truncate leading-tight">{item.label}</div>
-                  <div className={`text-[11px] truncate leading-tight mt-0.5 ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
-                    {item.subtext}
-                  </div>
-                </div>
-              </div>
-              {item.badge !== undefined && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-mono font-medium ${
-                    isActive ? 'bg-blue-800 text-blue-100' : 'bg-[#18365B] text-slate-300'
+      {/* Navigation Groups */}
+      <nav className="flex-1 px-3.5 py-4 space-y-4 overflow-y-auto">
+        {navSections.map((sec, sIdx) => (
+          <div key={sIdx} className="space-y-1">
+            <div className="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+              {sec.title}
+            </div>
+            {sec.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentTab(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all duration-150 ${
+                    isActive
+                      ? 'bg-blue-600 text-white font-medium shadow-md shadow-blue-900/40'
+                      : 'text-slate-300 hover:bg-[#132A4A] hover:text-white'
                   }`}
                 >
-                  {item.badge}
-                </span>
-              )}
-              {item.highlight && !isActive && (
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-              )}
-            </button>
-          );
-        })}
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <div className="min-w-0">
+                      <div className="text-xs truncate font-semibold leading-tight">{item.label}</div>
+                      <div className={`text-[10px] truncate leading-tight mt-0.5 ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {item.subtext}
+                      </div>
+                    </div>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`text-[11px] px-2 py-0.2 rounded-full font-mono font-medium ${
+                        isActive ? 'bg-blue-800 text-blue-100' : 'bg-[#18365B] text-slate-300'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.highlight && !isActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
 
-        <div className="pt-6 px-3 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="pt-4 px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
           Desks Cibles
         </div>
         <div className="px-3 space-y-2 text-xs text-slate-300">

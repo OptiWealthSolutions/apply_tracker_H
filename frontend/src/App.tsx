@@ -9,6 +9,7 @@ import { ApplicationModal } from './components/ApplicationModal';
 import { PreferencesModal } from './components/PreferencesModal';
 import { PreferencesView } from './components/PreferencesView';
 import { CVAuditView } from './components/CVAuditView';
+import { ResourcesView } from './components/ResourcesView';
 import { ApplyActionModal } from './components/ApplyActionModal';
 import { BankCareerSearchView } from './components/BankCareerSearchView';
 import { CVModal } from './components/CVModal';
@@ -344,6 +345,12 @@ export function App() {
           subtitle:
             "Questions réelles posées par les Traders, démonstrations mathématiques, intuition des Grecs et réponses modèles.",
         };
+      case 'resources':
+        return {
+          title: 'Attentes par Firme & Bibliothèque de Ressources',
+          subtitle:
+            'Phase 4 du Pipeline : Maîtrisez les attentes des banques d\'affaires, desks et fonds, et accédez aux meilleures vidéos, papers, livres et simulateurs.',
+        };
       case 'analytics':
         return {
           title: 'Statistiques & Performance du Pipeline',
@@ -460,6 +467,10 @@ export function App() {
 
             {currentTab === 'interview-prep' && (
               <InterviewPrepView />
+            )}
+
+            {currentTab === 'resources' && (
+              <ResourcesView />
             )}
 
             {currentTab === 'cv-audit' && (

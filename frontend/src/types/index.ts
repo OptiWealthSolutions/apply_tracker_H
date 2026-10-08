@@ -264,3 +264,32 @@ export interface LiveBankSearchResultItem {
   is_verified: boolean;
 }
 
+export interface FirmInterviewExpectation {
+  id: string;
+  firm_name: string;
+  sector: string;
+  division: string;
+  locations: string[];
+  recruitment_process: string[];
+  culture_and_fit_expectations: string[];
+  technical_evaluations: string[];
+  brainteasers_or_tests: string[];
+  typical_interview_questions: string[];
+  insider_candidate_tips: string;
+  official_careers_url: string;
+}
+
+export interface EducationalResource {
+  id: string;
+  title: string;
+  creator_or_author: string;
+  resource_type: string;
+  sector: string;
+  url: string;
+  duration_or_pages: string;
+  difficulty: string;
+  description: string;
+  key_takeaways: string[];
+}
+
+
