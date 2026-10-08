@@ -18,6 +18,9 @@ export interface JobOffer {
   description: string;
   requirements?: string;
   url?: string;
+  url_status?: number;
+  is_verified?: boolean;
+  last_verified_at?: string;
   salary_monthly?: number;
   source: string;
   date_posted?: string;
@@ -43,6 +46,7 @@ export interface Application {
   contact_name?: string;
   contact_email?: string;
   application_url?: string;
+  url_status?: number;
   notes?: string;
   cover_letter?: string;
   resume_version?: string;
@@ -102,4 +106,13 @@ export interface AnalyticsData {
   offer_rate: string;
   action_required_count: number;
   active_interviews_count: number;
+}
+
+export interface SyncResponse {
+  status: string;
+  total_scraped: number;
+  verified_valid: number;
+  invalid_discarded: number;
+  new_added: number;
+  timestamp: string;
 }

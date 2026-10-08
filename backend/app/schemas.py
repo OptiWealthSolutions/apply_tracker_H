@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 # --- JOB OFFER SCHEMAS ---
@@ -14,8 +14,11 @@ class JobOfferBase(BaseModel):
     description: str
     requirements: Optional[str] = None
     url: Optional[str] = None
+    url_status: int = 200
+    is_verified: bool = True
+    last_verified_at: Optional[datetime] = None
     salary_monthly: Optional[int] = 2500
-    source: str = "Manuel"
+    source: str = "Scraper"
     date_posted: Optional[str] = None
     tags: Optional[str] = None
     direct_apply_email: Optional[str] = None
@@ -50,6 +53,7 @@ class ApplicationBase(BaseModel):
     contact_name: Optional[str] = None
     contact_email: Optional[str] = None
     application_url: Optional[str] = None
+    url_status: Optional[int] = 200
     notes: Optional[str] = None
     cover_letter: Optional[str] = None
     resume_version: Optional[str] = "CV_Finance_Marche_2026.pdf"
@@ -72,6 +76,7 @@ class ApplicationUpdate(BaseModel):
     contact_name: Optional[str] = None
     contact_email: Optional[str] = None
     application_url: Optional[str] = None
+    url_status: Optional[int] = None
     notes: Optional[str] = None
     cover_letter: Optional[str] = None
     resume_version: Optional[str] = None
@@ -144,7 +149,7 @@ class UserProfileResponse(BaseModel):
         from_attributes = True
 
 
-# --- SCRAPING SCHEMAS ---
+# --- SCRAPING & SYNC SCHEMAS ---
 class ScrapeRequest(BaseModel):
     keywords: str = "stage assistant trader paris"
     location: Optional[str] = "Paris"
@@ -156,11 +161,20 @@ class ScrapeUrlRequest(BaseModel):
     url: str
 
 
+class SyncResponse(BaseModel):
+    status: str
+    total_scraped: int
+    verified_valid: int
+    invalid_discarded: int
+    new_added: int
+    timestamp: str
+
+
 # --- KNN RECOMMENDATION SCHEMAS ---
 class RecommendationItem(BaseModel):
     offer: JobOfferResponse
-    similarity_score: float  # 0.0 to 1.0 (e.g., 0.94)
-    is_serendipity_gem: bool  # True if found via KNN discovery (adjacent high-value desk not in explicit primary keywords)
+    similarity_score: float
+    is_serendipity_gem: bool
     match_reasons: List[str]
     desk_adjacency_tag: Optional[str] = None
 

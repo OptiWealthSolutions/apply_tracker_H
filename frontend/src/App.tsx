@@ -29,8 +29,11 @@ export function App() {
   // Loading states
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('');
   const [isKnnLoading, setIsKnnLoading] = useState(false);
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+  const [syncBanner, setSyncBanner] = useState<string | null>(null);
 
   // Modals
   const [isAppModalOpen, setIsAppModalOpen] = useState(false);
@@ -53,7 +56,7 @@ export function App() {
   // Fetch job offers
   const loadOffers = useCallback(async () => {
     try {
-      const data = await api.getOffers();
+      const data = await api.getOffers({ only_verified: true });
       setOffers(data);
     } catch (err) {
       console.error('Failed to load offers:', err);
@@ -115,6 +118,29 @@ export function App() {
   useEffect(() => {
     handleMasterRefresh();
   }, [handleMasterRefresh]);
+
+  // Real-time synchronization
+  const handleSyncRealOffers = async () => {
+    setIsSyncing(true);
+    setSyncBanner(null);
+    try {
+      const res = await api.syncRealOffers();
+      setLastSyncTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+      setSyncBanner(`${res.verified_valid} offres de stages réelles synchronisées avec liens vérifiés (HTTP 200).`);
+      await Promise.all([loadOffers(), loadRecommendations(), loadAnalytics()]);
+      setTimeout(() => setSyncBanner(null), 6000);
+    } catch (err) {
+      console.error('Sync failed:', err);
+      alert('Erreur lors de la synchronisation : vérifiez votre connexion réseau.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // CSV Export
+  const handleExportCsv = () => {
+    window.open(api.getExportCsvUrl(), '_blank');
+  };
 
   // Application Handlers
   const handleUpdateStatus = async (id: number, newStatus: ApplicationStatus) => {
@@ -185,7 +211,7 @@ export function App() {
       await loadOffers();
       await loadRecommendations();
     } catch (err) {
-      alert("Erreur lors de l'extraction de l'URL : vérifiez le lien ou réessayez.");
+      alert("Erreur lors de l'extraction de l'URL : lien inaccessible ou format non reconnu.");
     }
   };
 
@@ -215,7 +241,7 @@ export function App() {
         follow_up_date: followUp,
         salary_monthly: offer.salary_monthly,
         application_url: offer.url,
-        notes: `Offre ajoutée depuis le scraper. ${offer.contract_type}.`,
+        notes: `Offre réelle vérifiée. Desk : ${offer.desk}.`,
       });
       setApplications((prev) => [created, ...prev]);
       setOffers((prev) => prev.map((o) => (o.id === offer.id ? { ...o, is_applied: true } : o)));
@@ -268,7 +294,7 @@ export function App() {
         return {
           title: 'Scraper de Marché & Google Search',
           subtitle:
-            'Scrapez les offres publiées sur Google, DuckDuckGo et les plateformes spécialisées.',
+            'Offres réelles vérifiées en direct (HTTP 200) sans aucun lien mort ou hardcodé.',
         };
       case 'knn':
         return {
@@ -312,8 +338,25 @@ export function App() {
           onOpenPreferences={() => setIsPrefModalOpen(true)}
           onRefresh={handleMasterRefresh}
           isRefreshing={isRefreshing}
+          onSyncRealOffers={handleSyncRealOffers}
+          isSyncing={isSyncing}
+          onExportCsv={handleExportCsv}
           followUpAlertCount={followUpAlertCount}
+          lastSyncTime={lastSyncTime}
         />
+
+        {/* Real-time Sync Toast Notification */}
+        {syncBanner && (
+          <div className="bg-emerald-600 text-white px-6 py-2 text-xs font-semibold flex items-center justify-between shadow-sm animate-in slide-in-from-top duration-300">
+            <span>{syncBanner}</span>
+            <button
+              onClick={() => setSyncBanner(null)}
+              className="text-white hover:text-emerald-100 text-xs font-bold"
+            >
+              Fermer
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Body Content */}
         <main className="flex-1 overflow-y-auto p-8 bg-slate-50/70">
@@ -326,6 +369,7 @@ export function App() {
                 onDeleteApplication={handleDeleteApplication}
                 onDirectApply={handleDirectApplyFromApplication}
                 onNewApplication={handleNewApplication}
+                onExportCsv={handleExportCsv}
               />
             )}
 
@@ -334,10 +378,12 @@ export function App() {
                 offers={offers}
                 onScrapeSearch={handleScrapeSearch}
                 onScrapeUrl={handleScrapeUrl}
+                onSyncRealOffers={handleSyncRealOffers}
                 onAddToTracker={handleAddOfferToTracker}
                 onDirectApply={handleDirectApplyFromOffer}
                 onToggleFavorite={handleToggleFavorite}
                 isScraping={isScraping}
+                isSyncing={isSyncing}
               />
             )}
 

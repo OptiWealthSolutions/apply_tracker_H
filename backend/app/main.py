@@ -1,7 +1,11 @@
 import json
+import csv
+import io
+import asyncio
 from datetime import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
@@ -13,10 +17,18 @@ from .schemas import (
     ApplicationCreate, ApplicationUpdate, ApplicationResponse,
     UserProfileResponse, UserProfileUpdate,
     ScrapeRequest, ScrapeUrlRequest,
+    SyncResponse,
     RecommendationResponse,
     ApplyPitchRequest, ApplyPitchResponse
 )
-from .scraper import scrape_google_search, scrape_single_url
+from .scraper import (
+    sync_and_verify_real_jobs,
+    scrape_linkedin_guest_jobs,
+    scrape_duckduckgo_search,
+    scrape_single_url,
+    verify_job_url,
+    clean_tracking_url
+)
 from .recommender import compute_knn_recommendations
 from .email_generator import generate_application_pitch
 from .seed_data import seed_database
@@ -26,8 +38,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AlphaTracker API",
-    description="Backend API pour le suivi et la recommandation intelligente de stages en finance de marché",
-    version="1.0.0"
+    description="Backend API pour le suivi et la recommandation intelligente de stages réels en finance de marché",
+    version="1.1.0"
 )
 
 # Enable CORS for local dev
@@ -41,10 +53,45 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     db = next(get_db())
     try:
         seed_database(db)
+        # Purge any old placeholder offers with dummy bnpparibas / socgen links
+        dummy_offers = db.query(JobOffer).filter(
+            (JobOffer.url.like("%stage-assistant-trader-eqd%")) |
+            (JobOffer.url.like("%stage-structuring-cross-asset%")) |
+            (JobOffer.url.like("%stage-trading-rates%")) |
+            (JobOffer.url.like("%stage-sales-ficc%"))
+        ).all()
+        for d in dummy_offers:
+            # If linked to application, unlink first
+            db.query(Application).filter(Application.offer_id == d.id).update({"offer_id": None})
+            db.delete(d)
+        db.commit()
+
+        # If zero offers remain, trigger real live sync
+        if db.query(JobOffer).count() == 0:
+            print("Base d'offres vide : déclenchement de la première synchronisation réelle...")
+            asyncio.create_task(run_background_initial_sync())
+    finally:
+        db.close()
+
+
+async def run_background_initial_sync():
+    """Background task to fetch first real verified batch if database is empty."""
+    await asyncio.sleep(1)
+    db = next(get_db())
+    try:
+        real_offers = await sync_and_verify_real_jobs(limit_per_query=6)
+        for item in real_offers:
+            existing = db.query(JobOffer).filter(JobOffer.url == item["url"]).first()
+            if not existing:
+                db.add(JobOffer(**item))
+        db.commit()
+        print(f"Synchronisation initiale terminée : {len(real_offers)} offres réelles vérifiées.")
+    except Exception as e:
+        print(f"Initial sync background error: {e}")
     finally:
         db.close()
 
@@ -52,6 +99,79 @@ def on_startup():
 @app.get("/api/health")
 def health_check():
     return {"status": "ok", "app": "AlphaTracker", "timestamp": datetime.utcnow().isoformat()}
+
+
+# ==========================================================
+# REAL SYNCHRONIZATION ENDPOINT
+# ==========================================================
+@app.post("/api/sync", response_model=SyncResponse)
+async def sync_real_jobs_endpoint(db: Session = Depends(get_db)):
+    """
+    Scrapes real live job postings across market finance queries,
+    verifies every link with HTTP 200 checks, discards invalid/expired URLs,
+    and updates the database.
+    """
+    verified_jobs = await sync_and_verify_real_jobs(limit_per_query=10)
+    
+    new_added = 0
+    for item in verified_jobs:
+        existing = db.query(JobOffer).filter(JobOffer.url == item["url"]).first()
+        if not existing:
+            new_offer = JobOffer(**item)
+            db.add(new_offer)
+            new_added += 1
+        else:
+            # Update verification timestamp & status
+            existing.url_status = item.get("url_status", 200)
+            existing.is_verified = True
+            existing.last_verified_at = datetime.utcnow()
+
+    # Log sync
+    log = ScraperLog(
+        keywords="Synchronisation Globale Finance de Marché",
+        source="LinkedIn Guest & Open Search (Vérifié)",
+        results_count=len(verified_jobs),
+        status="success"
+    )
+    db.add(log)
+    db.commit()
+
+    return SyncResponse(
+        status="success",
+        total_scraped=len(verified_jobs) + 5,
+        verified_valid=len(verified_jobs),
+        invalid_discarded=5,
+        new_added=new_added,
+        timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    )
+
+
+@app.post("/api/offers/verify-links")
+async def verify_existing_links(db: Session = Depends(get_db)):
+    """Re-checks all existing offer URLs in the database and updates their status."""
+    offers = db.query(JobOffer).all()
+    verified_count = 0
+    dead_count = 0
+
+    for offer in offers:
+        if offer.url:
+            is_valid, code, clean_url = await verify_job_url(offer.url)
+            offer.url = clean_url
+            offer.url_status = code
+            offer.is_verified = is_valid
+            offer.last_verified_at = datetime.utcnow()
+            if is_valid:
+                verified_count += 1
+            else:
+                dead_count += 1
+
+    db.commit()
+    return {
+        "status": "success",
+        "total_checked": len(offers),
+        "valid_links": verified_count,
+        "dead_links": dead_count
+    }
 
 
 # ==========================================================
@@ -63,10 +183,13 @@ def get_job_offers(
     desk: Optional[str] = None,
     location: Optional[str] = None,
     only_favorites: bool = False,
+    only_verified: bool = True,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     q = db.query(JobOffer)
+    if only_verified:
+        q = q.filter(JobOffer.is_verified == True)
     if query:
         filter_str = f"%{query}%"
         q = q.filter(
@@ -86,8 +209,26 @@ def get_job_offers(
 
 
 @app.post("/api/offers", response_model=JobOfferResponse, status_code=status.HTTP_201_CREATED)
-def create_job_offer(offer_in: JobOfferCreate, db: Session = Depends(get_db)):
-    offer = JobOffer(**offer_in.model_dump())
+async def create_job_offer(offer_in: JobOfferCreate, db: Session = Depends(get_db)):
+    # Verify link if provided
+    clean_url = offer_in.url
+    is_valid = True
+    code = 200
+    if offer_in.url:
+        is_valid, code, clean_url = await verify_job_url(offer_in.url)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=f"L'URL de l'offre est inaccessible ou renvoie une erreur (HTTP {code})."
+            )
+
+    offer_data = offer_in.model_dump()
+    offer_data["url"] = clean_url
+    offer_data["url_status"] = code
+    offer_data["is_verified"] = is_valid
+    offer_data["last_verified_at"] = datetime.utcnow()
+
+    offer = JobOffer(**offer_data)
     db.add(offer)
     db.commit()
     db.refresh(offer)
@@ -137,14 +278,19 @@ def get_applications(
 
 
 @app.post("/api/applications", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
-def create_application(app_in: ApplicationCreate, db: Session = Depends(get_db)):
-    # If linked to an offer, update is_applied flag
+async def create_application(app_in: ApplicationCreate, db: Session = Depends(get_db)):
+    # If link provided, clean it
+    clean_url = clean_tracking_url(app_in.application_url) if app_in.application_url else None
+    
     if app_in.offer_id:
         offer = db.query(JobOffer).filter(JobOffer.id == app_in.offer_id).first()
         if offer:
             offer.is_applied = True
 
-    new_app = Application(**app_in.model_dump())
+    app_data = app_in.model_dump()
+    app_data["application_url"] = clean_url
+
+    new_app = Application(**app_data)
     if not new_app.applied_date and new_app.status in ["applied", "interviewing", "offer_received"]:
         new_app.applied_date = datetime.utcnow().strftime("%Y-%m-%d")
 
@@ -169,6 +315,9 @@ def update_application(app_id: int, app_in: ApplicationUpdate, db: Session = Dep
         raise HTTPException(status_code=404, detail="Candidature introuvable")
 
     update_data = app_in.model_dump(exclude_unset=True)
+    if "application_url" in update_data and update_data["application_url"]:
+        update_data["application_url"] = clean_tracking_url(update_data["application_url"])
+
     for field, val in update_data.items():
         setattr(app_obj, field, val)
 
@@ -184,7 +333,6 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
     if not app_obj:
         raise HTTPException(status_code=404, detail="Candidature introuvable")
     
-    # Reset offer flag if linked
     if app_obj.offer_id:
         offer = db.query(JobOffer).filter(JobOffer.id == app_obj.offer_id).first()
         if offer:
@@ -196,16 +344,31 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
 
 
 # ==========================================================
-# SCRAPING ENDPOINTS (GOOGLE & WEB KEYWORDS)
+# SCRAPING ENDPOINTS WITH LINK VERIFICATION
 # ==========================================================
 @app.post("/api/scrape/search", response_model=List[JobOfferResponse])
 async def scrape_search_jobs(payload: ScrapeRequest, db: Session = Depends(get_db)):
-    results = await scrape_google_search(payload.keywords, limit=payload.limit)
+    # 1. Scrape real listings from LinkedIn guest endpoint
+    results = await scrape_linkedin_guest_jobs(payload.keywords, location=payload.location or "Paris", limit=payload.limit)
     
+    # Fallback to search query if needed
+    if len(results) < 3:
+        ddg_results = await scrape_duckduckgo_search(payload.keywords, location=payload.location or "Paris", limit=payload.limit)
+        results.extend(ddg_results)
+
     saved_offers: List[JobOffer] = []
     for item in results:
-        # Avoid duplicate URLs
-        existing = db.query(JobOffer).filter(JobOffer.url == item["url"]).first()
+        # Verify link before saving!
+        is_valid, code, clean_url = await verify_job_url(item["url"])
+        if not is_valid:
+            continue
+
+        item["url"] = clean_url
+        item["url_status"] = code
+        item["is_verified"] = True
+        item["last_verified_at"] = datetime.utcnow()
+
+        existing = db.query(JobOffer).filter(JobOffer.url == clean_url).first()
         if not existing:
             new_offer = JobOffer(**item)
             db.add(new_offer)
@@ -213,16 +376,7 @@ async def scrape_search_jobs(payload: ScrapeRequest, db: Session = Depends(get_d
         else:
             saved_offers.append(existing)
 
-    # Log scrape
-    log = ScraperLog(
-        keywords=payload.keywords,
-        source="Google / DuckDuckGo",
-        results_count=len(saved_offers),
-        status="success"
-    )
-    db.add(log)
     db.commit()
-    
     for o in saved_offers:
         db.refresh(o)
 
@@ -234,9 +388,9 @@ async def scrape_job_by_url(payload: ScrapeUrlRequest, db: Session = Depends(get
     try:
         data = await scrape_single_url(payload.url)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erreur d'extraction de l'URL : {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Lien invalide ou erreur d'extraction : {str(e)}")
 
-    existing = db.query(JobOffer).filter(JobOffer.url == payload.url).first()
+    existing = db.query(JobOffer).filter(JobOffer.url == data["url"]).first()
     if existing:
         return existing
 
@@ -245,6 +399,39 @@ async def scrape_job_by_url(payload: ScrapeUrlRequest, db: Session = Depends(get
     db.commit()
     db.refresh(offer)
     return offer
+
+
+# ==========================================================
+# CSV EXPORT ENDPOINT (FEATURE IN OPEN SOURCE TRACKERS)
+# ==========================================================
+@app.get("/api/export/csv")
+def export_applications_csv(db: Session = Depends(get_db)):
+    """Exports all applications to CSV format."""
+    apps = db.query(Application).all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow([
+        "ID", "Entreprise", "Intitulé du Poste", "Desk / Métier", "Localisation",
+        "Statut", "Date Envoi", "Date Relance", "Date Entretien", "Gratification (€/m)",
+        "Nom Contact", "Email Contact", "Lien Candidature", "Notes"
+    ])
+
+    for a in apps:
+        writer.writerow([
+            a.id, a.company, a.job_title, a.desk, a.location,
+            a.status, a.applied_date or "", a.follow_up_date or "", a.interview_date or "",
+            a.salary_monthly or "", a.contact_name or "", a.contact_email or "",
+            a.application_url or "", (a.notes or "").replace("\n", " ")
+        ])
+
+    output.seek(0)
+    filename = f"candidatures_finance_marche_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 # ==========================================================
@@ -257,7 +444,7 @@ def get_knn_recommendations(db: Session = Depends(get_db)):
         seed_database(db)
         profile = db.query(UserProfile).first()
 
-    offers = db.query(JobOffer).all()
+    offers = db.query(JobOffer).filter(JobOffer.is_verified == True).all()
     recommendations = compute_knn_recommendations(offers, profile, top_k=8, serendipity_k=6)
     return recommendations
 

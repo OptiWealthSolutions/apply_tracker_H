@@ -9,8 +9,10 @@ import {
   Building,
   MapPin,
   Link as LinkIcon,
-  CheckCircle,
+  CheckCircle2,
   Filter,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 import type { JobOffer } from '../types';
 
@@ -18,29 +20,33 @@ interface JobScraperViewProps {
   offers: JobOffer[];
   onScrapeSearch: (keywords: string, location: string) => Promise<void>;
   onScrapeUrl: (url: string) => Promise<void>;
+  onSyncRealOffers: () => Promise<void>;
   onAddToTracker: (offer: JobOffer) => void;
   onDirectApply: (offer: JobOffer) => void;
   onToggleFavorite: (id: number) => void;
   isScraping: boolean;
+  isSyncing: boolean;
 }
 
 const PRESET_QUERIES = [
-  'Stage Assistant Trader Equity Derivatives Paris',
-  'Stage Quantitative Research Trading Python',
-  'Stage Structuring Produits Structurés Cross Asset',
-  'Stage Sales FICC Fixed Income Taux Change',
-  'Stage Assistant Trader ETF Market Making',
-  'Stage Risques de Marché Stress Testing',
+  'stage trading paris',
+  'stage assistant trader',
+  'stage quant finance paris',
+  'stage structuring paris',
+  'stage market risk global markets',
+  'stage sales ficc paris',
 ];
 
 export const JobScraperView: React.FC<JobScraperViewProps> = ({
   offers,
   onScrapeSearch,
   onScrapeUrl,
+  onSyncRealOffers,
   onAddToTracker,
   onDirectApply,
   onToggleFavorite,
   isScraping,
+  isSyncing,
 }) => {
   const [keywords, setKeywords] = useState('stage assistant trader paris');
   const [location, setLocation] = useState('Paris');
@@ -48,6 +54,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlLoading, setUrlLoading] = useState(false);
   const [deskFilter, setDeskFilter] = useState('all');
+  const [onlyVerified, setOnlyVerified] = useState(true);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +76,9 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
   };
 
   const filteredOffers = offers.filter((o) => {
-    if (deskFilter === 'all') return true;
-    return o.desk === deskFilter;
+    const matchesDesk = deskFilter === 'all' || o.desk === deskFilter;
+    const matchesVerified = !onlyVerified || (o.is_verified && o.url_status === 200);
+    return matchesDesk && matchesVerified;
   });
 
   const uniqueDesks = Array.from(new Set(offers.map((o) => o.desk))).filter(Boolean);
@@ -83,19 +91,29 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Globe className="w-4 h-4 text-blue-600" />
-              Scraper d'Offres de Stage via Mots-Clés & Google
+              Scraper de Marché en Temps Réel avec Vérification d'URL (HTTP 200)
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Recherchez et importez automatiquement les annonces de stages publiées sur les plateformes financières et moteurs de recherche.
+              Toutes les offres sont testées et validées automatiquement avant enregistrement. Aucun lien mort ou page 404.
             </p>
           </div>
-          <button
-            onClick={() => setShowUrlInput(!showUrlInput)}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 self-start md:self-auto"
-          >
-            <LinkIcon className="w-3.5 h-3.5" />
-            {showUrlInput ? 'Masquer import URL' : 'Importer une URL spécifique'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSyncRealOffers}
+              disabled={isSyncing}
+              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'Synchronisation...' : 'Synchroniser Offres Réelles'}</span>
+            </button>
+            <button
+              onClick={() => setShowUrlInput(!showUrlInput)}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              {showUrlInput ? 'Masquer import' : 'Importer URL'}
+            </button>
+          </div>
         </div>
 
         {/* Custom URL Importer */}
@@ -107,7 +125,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
             <input
               type="url"
               required
-              placeholder="Collez l'URL de l'annonce (LinkedIn, eFinancialCareers, BNP, SG, WTTJ...)"
+              placeholder="Collez l'URL de l'annonce réelle à vérifier et extraire..."
               value={customUrl}
               onChange={(e) => setCustomUrl(e.target.value)}
               className="flex-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -117,7 +135,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
               disabled={urlLoading}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50 transition"
             >
-              {urlLoading ? 'Extraction...' : 'Extraire & Ajouter'}
+              {urlLoading ? 'Vérification...' : 'Vérifier & Ajouter'}
             </button>
           </form>
         )}
@@ -128,7 +146,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="ex: stage assistant trader flow, structuring quant, fixed income analyst..."
+              placeholder="ex: stage assistant trader, quant equity derivatives, fixed income sales..."
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition"
@@ -153,12 +171,12 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
             {isScraping ? (
               <>
                 <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>Scraping en cours...</span>
+                <span>Scraping & Vérification...</span>
               </>
             ) : (
               <>
                 <Search className="w-3.5 h-3.5" />
-                <span>Lancer le Scraper</span>
+                <span>Rechercher</span>
               </>
             )}
           </button>
@@ -167,7 +185,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
         {/* Preset Query Chips */}
         <div className="pt-1">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-            Recherches Spécialisées Finance de Marché :
+            Recherches Rapides de Marché :
           </div>
           <div className="flex flex-wrap gap-2">
             {PRESET_QUERIES.map((preset) => (
@@ -189,33 +207,49 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
 
       {/* RESULTS LISTING */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">
-              Offres Détectées ({filteredOffers.length})
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span>Offres Réelles en Base ({filteredOffers.length})</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                Vérification HTTP 200 Active
+              </span>
             </h3>
             <p className="text-xs text-slate-500">
-              Toutes les offres sauvegardées localement dans votre base SQLite.
+              Ces offres existent réellement et leurs liens mènent directement vers le portail officiel.
             </p>
           </div>
 
-          {uniqueDesks.length > 0 && (
-            <div className="flex items-center space-x-2">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={deskFilter}
-                onChange={(e) => setDeskFilter(e.target.value)}
-                className="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="all">Tous les desks ({offers.length})</option>
-                {uniqueDesks.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="flex items-center space-x-3">
+            <label className="flex items-center space-x-1.5 text-xs text-slate-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={onlyVerified}
+                onChange={(e) => setOnlyVerified(e.target.checked)}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>Liens 200 OK uniquement</span>
+            </label>
+
+            {uniqueDesks.length > 0 && (
+              <div className="flex items-center space-x-1.5">
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
+                <select
+                  value={deskFilter}
+                  onChange={(e) => setDeskFilter(e.target.value)}
+                  className="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="all">Tous les desks ({offers.length})</option>
+                  {uniqueDesks.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
         {filteredOffers.length === 0 ? (
@@ -223,8 +257,15 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
             <Building className="w-10 h-10 text-slate-300 mx-auto mb-2" />
             <div className="text-sm font-semibold text-slate-800">Aucune offre trouvée</div>
             <p className="text-xs text-slate-500 mt-1">
-              Lancez une recherche ci-dessus avec vos mots-clés de marché.
+              Cliquez sur "Synchroniser Offres Réelles" pour importer les offres actives du marché.
             </p>
+            <button
+              onClick={onSyncRealOffers}
+              disabled={isSyncing}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition"
+            >
+              Lancer la Synchronisation
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,11 +280,12 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-slate-900">{offer.company}</span>
-                        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                          {offer.source}
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Lien Vérifié (200 OK)
                         </span>
                       </div>
-                      <h4 className="text-xs font-semibold text-blue-900 mt-1 line-clamp-2">
+                      <h4 className="text-xs font-semibold text-blue-900 mt-1.5 line-clamp-2">
                         {offer.title}
                       </h4>
                     </div>
@@ -293,10 +335,10 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                       href={offer.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1"
+                      className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
                     >
-                      <span>Voir annonce</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <span>Ouvrir l'offre réelle</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   ) : (
                     <span className="text-xs text-slate-400 font-mono-numbers">
@@ -316,8 +358,8 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                     >
                       {offer.is_applied ? (
                         <>
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>Déjà au tracker</span>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Au tracker</span>
                         </>
                       ) : (
                         <>

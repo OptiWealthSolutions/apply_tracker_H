@@ -6,18 +6,37 @@ import type {
   ApplyPitchResponse,
   AnalyticsData,
   ApplicationStatus,
+  SyncResponse,
 } from '../types';
 
 const API_BASE = '/api';
 
 export const api = {
+  // Real Live Synchronization & Link Verification Engine
+  async syncRealOffers(): Promise<SyncResponse> {
+    const res = await fetch(`${API_BASE}/sync`, { method: 'POST' });
+    if (!res.ok) throw new Error('Erreur lors de la synchronisation des offres');
+    return res.json();
+  },
+
+  async verifyAllLinks(): Promise<{ status: string; total_checked: number; valid_links: number; dead_links: number }> {
+    const res = await fetch(`${API_BASE}/offers/verify-links`, { method: 'POST' });
+    if (!res.ok) throw new Error('Erreur lors de la vérification des liens');
+    return res.json();
+  },
+
+  getExportCsvUrl(): string {
+    return `${API_BASE}/export/csv`;
+  },
+
   // Job Offers
-  async getOffers(params?: { query?: string; desk?: string; location?: string; only_favorites?: boolean }): Promise<JobOffer[]> {
+  async getOffers(params?: { query?: string; desk?: string; location?: string; only_favorites?: boolean; only_verified?: boolean }): Promise<JobOffer[]> {
     const queryParams = new URLSearchParams();
     if (params?.query) queryParams.append('query', params.query);
     if (params?.desk && params.desk !== 'Tous') queryParams.append('desk', params.desk);
     if (params?.location && params.location !== 'Toutes') queryParams.append('location', params.location);
     if (params?.only_favorites) queryParams.append('only_favorites', 'true');
+    if (params?.only_verified !== undefined) queryParams.append('only_verified', params.only_verified ? 'true' : 'false');
 
     const res = await fetch(`${API_BASE}/offers?${queryParams.toString()}`);
     if (!res.ok) throw new Error('Erreur lors du chargement des offres');
