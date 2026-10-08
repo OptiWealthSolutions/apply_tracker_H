@@ -49,14 +49,25 @@ FINANCE_DESKS_MAP = {
     "dcm": "Debt Capital Markets (DCM)",
     "ecm": "Equity Capital Markets (ECM)",
     "asset management": "Quantitative Asset Management",
+    "gérance": "Quantitative Asset Management",
+    "portfolio": "Quantitative Asset Management",
+    "portefeuille": "Quantitative Asset Management",
+    "buy-side": "Quantitative Asset Management",
+    "buyside": "Quantitative Asset Management",
+    "hedge fund": "Hedge Fund / Systematic Strategies",
+    "systematic": "Hedge Fund / Systematic Strategies",
+    "algo trading": "Hedge Fund / Systematic Strategies",
+    "algorithmic": "Hedge Fund / Systematic Strategies",
+    "fintech": "FinTech / Quantitative Engineering",
     "global markets": "Global Markets (Trading & Sales)",
-    "systematic": "Systematic & Algorithmic Trading",
-    "algo trading": "Systematic & Algorithmic Trading",
     "macro": "Macro Trading & Research",
     "dealing": "Trading Flow / Exotics",
     "repo": "Repo & Money Market Financing",
     "monétaire": "Repo & Money Market Financing",
     "arbitrage": "Statistical Arbitrage & Quant Trading",
+    "private debt": "Credit Trading / Structuring",
+    "crypto": "Digital Assets & Crypto Trading",
+    "digital assets": "Digital Assets & Crypto Trading",
 }
 
 FINANCE_POSITIVE = [
@@ -65,7 +76,9 @@ FINANCE_POSITIVE = [
     "volatilit", "arbitrag", "pricing", "asset management", "portefeuille", "hedge fund",
     "macro", "commodit", "matière première", "energy trader", "global market",
     "sales trading", "market risk", "risque de marché", "dcm", "ecm", "etf",
-    "securities", "cib", "investment bank", "dealing", "gérant", "monétaire", "convex"
+    "securities", "cib", "investment bank", "dealing", "gérant", "monétaire", "convex",
+    "fintech", "wealth", "buy-side", "buyside", "private equity", "private debt", "crypto",
+    "digital asset", "analyste financier", "portfolio", "systematic", "alpha"
 ]
 
 NEGATIVE_KEYWORDS = [
@@ -136,7 +149,7 @@ def clean_job_title(raw_title: str) -> str:
     cleaned = re.sub(r'^(internship\s*[-–:]\s*)+', 'Internship - ', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'\s+at\s+[\w\s&.,-]+$', '', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'\s+chez\s+[\w\s&.,-]+$', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'\s*[-–|]\s*(Paris|London|Genève|Geneva|France|Luxembourg|Puteaux|Nanterre|La Défense|Frankfurt|Zurich|Milan).*$', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\s*[-–|]\s*(Paris|London|Genève|Geneva|France|Luxembourg|Marseille|New York|Milan|Puteaux|Nanterre|La Défense|Frankfurt|Zurich).*$', '', cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r'\s*\(?[Ff]/[Hh]/?[Xx]?\)?\s*$', '', cleaned)
     cleaned = re.sub(r'\s*\(?[Hh]/[Ff]/?[Xx]?\)?\s*$', '', cleaned)
     cleaned = re.sub(r'\s*\(?[Ff]/[Mm]/?[Dd]?\)?\s*$', '', cleaned)
@@ -267,6 +280,17 @@ async def fetch_page_with_retry(query: str, location: str, offset: int = 0) -> L
                         elif any(k in cleaned_title.lower() for k in ["off-cycle", "offcycle"]):
                             contract_type = "Off-Cycle Internship (6 mois)"
 
+                        loc_lower = job_loc.lower()
+                        salary = 4500 if ("new york" in loc_lower or "ny" in loc_lower) else (
+                            3800 if ("london" in loc_lower or "londres" in loc_lower) else (
+                                3600 if ("geneva" in loc_lower or "genève" in loc_lower or "zurich" in loc_lower) else (
+                                    3000 if "luxembourg" in loc_lower else (
+                                        2400 if ("milan" in loc_lower or "marseille" in loc_lower) else 2800
+                                    )
+                                )
+                            )
+                        )
+
                         results.append({
                             "title": cleaned_title,
                             "company": company,
@@ -277,7 +301,7 @@ async def fetch_page_with_retry(query: str, location: str, offset: int = 0) -> L
                             "description": f"Offre réelle sur le desk {desk} ({asset_class}) chez {company}. Modélisation quantitative, pricing et analyse de marché.",
                             "requirements": "Master 1 Finance de marché EDHEC ou École d'Ingénieur. Maîtrise Python, pricing d'actifs et modélisation de dérivés.",
                             "url": clean_url,
-                            "salary_monthly": 2800 if "paris" in job_loc.lower() else (3800 if "london" in job_loc.lower() else 3200),
+                            "salary_monthly": salary,
                             "source": "LinkedIn Jobs (Vérifié)",
                             "date_posted": date_posted,
                             "tags": f"{desk}, {asset_class}, {job_loc}, Stage Réel",
@@ -300,7 +324,10 @@ async def sync_and_verify_real_jobs(target_min_offers: int = 150, limit_per_quer
     4. Deduplicates and guarantees 100% active, non-hardcoded, working links.
     """
     search_matrix = [
-        # Paris core
+        # Paris core & specialized desks
+        ("stage hedge fund", "Paris", [0, 10, 20]),
+        ("stage fintech quant", "Paris", [0, 10, 20]),
+        ("stage asset management quant", "Paris", [0, 10, 20]),
         ("stage assistant trader", "Paris", [0, 10, 20]),
         ("stage trading", "Paris", [0, 10, 20]),
         ("stage quantitative finance", "Paris", [0, 10, 20]),
@@ -314,15 +341,24 @@ async def sync_and_verify_real_jobs(target_min_offers: int = 150, limit_per_quer
         ("stage finance de marche", "Paris", [0, 10, 20]),
         ("off-cycle global markets", "Paris", [0, 10, 20]),
         ("summer analyst global markets", "Paris", [0, 10, 20]),
-        ("stage asset management quant", "Paris", [0, 10, 20]),
         ("stage commodities energy trading", "Paris", [0, 10, 20]),
         ("stage repo financing", "Paris", [0, 10, 20]),
         ("stage sales trading", "Paris", [0, 10, 20]),
-        # France broad
-        ("stage trading", "France", [0, 10]),
-        ("stage finance de marche", "France", [0, 10]),
-        ("stage assistant trader", "France", [0, 10]),
+        # Marseille hub
+        ("stage finance", "Marseille", [0, 10]),
+        ("stage trading", "Marseille", [0, 10]),
+        ("stage analyste financier", "Marseille", [0, 10]),
+        ("stage fintech", "Marseille", [0, 10]),
+        # Luxembourg hub
+        ("stage asset management quant", "Luxembourg", [0, 10, 20]),
+        ("stage hedge fund", "Luxembourg", [0, 10, 20]),
+        ("stage market risk", "Luxembourg", [0, 10, 20]),
+        ("stage private debt quant", "Luxembourg", [0, 10]),
+        ("stage fintech", "Luxembourg", [0, 10]),
         # London tier-1 financial center
+        ("hedge fund quant intern", "London", [0, 10, 20]),
+        ("fintech quantitative intern", "London", [0, 10, 20]),
+        ("asset management quant intern", "London", [0, 10, 20]),
         ("intern quantitative trading", "London", [0, 10, 20]),
         ("intern quantitative research", "London", [0, 10, 20]),
         ("sales trading intern", "London", [0, 10, 20]),
@@ -331,9 +367,21 @@ async def sync_and_verify_real_jobs(target_min_offers: int = 150, limit_per_quer
         ("equity derivatives intern", "London", [0, 10]),
         ("fixed income intern", "London", [0, 10]),
         ("structured products intern", "London", [0, 10]),
-        # Geneva / Luxembourg / Frankfurt
+        # New York / NY global financial center
+        ("quantitative research intern", "New York", [0, 10, 20]),
+        ("hedge fund intern", "New York", [0, 10, 20]),
+        ("fintech trading intern", "New York", [0, 10, 20]),
+        ("asset management quant intern", "New York", [0, 10, 20]),
+        ("summer analyst sales and trading", "New York", [0, 10, 20]),
+        # Milan hub
+        ("trading intern", "Milan", [0, 10, 20]),
+        ("quantitative analyst intern", "Milan", [0, 10, 20]),
+        ("asset management intern", "Milan", [0, 10, 20]),
+        ("fintech intern", "Milan", [0, 10, 20]),
+        # Geneva / Switzerland
         ("stage trading", "Genève", [0, 10]),
-        ("stage asset management quant", "Luxembourg", [0, 10]),
+        ("intern trading", "Geneva", [0, 10]),
+        ("intern commodities trading", "Geneva", [0, 10]),
         ("internship global markets", "Frankfurt", [0, 10]),
     ]
 
@@ -344,8 +392,6 @@ async def sync_and_verify_real_jobs(target_min_offers: int = 150, limit_per_quer
             jobs = await fetch_page_with_retry(query, loc, offset=offset)
             raw_collected.extend(jobs)
             await asyncio.sleep(0.08)
-        if len(raw_collected) >= target_min_offers * 2:
-            break
 
     # Deduplicate candidates by clean URL and normalized company+title
     seen_urls = set()

@@ -47,6 +47,23 @@ DESK_SPECIFIC_SUBSTANCE = {
         "je sais analyser les fondamentaux d'offre/demande, les structures de terme (contango/backwardation) et concevoir des "
         "stratégies de couverture sous Python."
     ),
+    "Hedge Fund / Systematic Strategies": (
+        "En fondant Horacle Capital, j'ai développé une plateforme quantitative complète en Python axée sur l'alpha macroéconomique "
+        "et l'extraction de rendements convexes asymétriques. Habitué à concevoir des modèles robustes résistant au sur-apprentissage "
+        "et à backtester des stratégies systématiques multi-actifs sous contraintes strictes de Sharpe et de drawdowns, "
+        "je m'intègre immédiatement au sein de votre équipe de recherche quantitative ou de gestion alternative."
+    ),
+    "Quantitative Asset Management": (
+        "Mon cursus en M1 Finance à l'EDHEC combiné au développement de Horacle Hub m'a permis de concevoir des modèles factoriels multi-actifs, "
+        "des indicateurs de fair value cross-asset et des techniques d'allocation optimisée de portefeuille. "
+        "Je maîtrise l'analyse de risque factoriel, l'attribution de performance et l'automatisation des pipelines d'investissement sous Python."
+    ),
+    "FinTech / Quantitative Engineering": (
+        "Concepteur intégral d'Horacle Hub, j'ai bâti une architecture applicative complète alliant ingestion de séries temporelles financières, "
+        "moteurs d'analyse macroéconomique et pipelines de pricing stochastique sous Python et MQL5. "
+        "Mon double profil finance de marché et ingénierie logicielle quantitative me permet de développer des solutions algorithmiques "
+        "fiables, véloces et directement orientées production."
+    ),
 }
 
 

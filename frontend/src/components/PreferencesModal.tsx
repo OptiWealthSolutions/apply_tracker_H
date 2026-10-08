@@ -12,42 +12,53 @@ interface PreferencesModalProps {
 const AVAILABLE_ROLES = [
   'Assistant Trader',
   'Quant Research',
+  'Quantitative Trading',
   'Structuring Produits Structurés',
   'Quantitative Market Making',
+  'Asset Management (Gérance Quant / Buy-Side)',
+  'Hedge Fund Analyst / Quant Researcher',
+  'FinTech Quantitative Engineer / Algo Dev',
+  'Macro Trading & Systematic Research',
   'Sales FICC / Institutional',
   'Risk Management de Marché',
-  'Commodities & Energy',
+  'Commodities & Energy Trading',
   'Gestion Quantitative Multi-Asset',
 ];
 
 const AVAILABLE_ASSET_CLASSES = [
-  'Equity Derivatives',
-  'Rates & FX',
-  'Volatility',
-  'Credit',
-  'Commodities',
-  'Multi-Asset',
+  'Equity Derivatives & Convexity',
+  'Rates & FX Desk',
+  'Hedge Fund Systematic Strategies',
+  'Asset Management Quantitatif',
+  'FinTech & Execution Algorithmique',
+  'Cross-Asset Fair Value',
+  'Volatility Arbitrage & Dispersion',
+  'Credit & Private Debt',
+  'Commodities & Energy',
 ];
 
 const AVAILABLE_LOCATIONS = [
   'Paris',
+  'Marseille',
+  'Luxembourg',
   'Londres',
+  'New York',
+  'Milan',
   'Genève',
   'Francfort',
-  'New York',
-  'Luxembourg',
 ];
 
 const AVAILABLE_SKILLS = [
   'Python',
+  'MQL5 (MT5)',
+  'Calcul Stochastique & Pricing',
+  'Machine Learning Finance',
+  'Greeks & High Convexity Payoffs',
+  'Macro Scoring & Fair Value',
   'C++',
-  'Calcul Stochastique',
-  'Greeks & Pricing',
   'SQL',
   'Bloomberg',
-  'Machine Learning',
-  'VBA',
-  'Options Vanilles & Exotiques',
+  'Excel Avancé',
 ];
 
 export const PreferencesModal: React.FC<PreferencesModalProps> = ({
