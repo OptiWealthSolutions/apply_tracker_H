@@ -98,7 +98,57 @@ export interface ApplyPitchResponse {
   quick_email_pitch: string;
   mailto_url: string;
   recommended_portfolio_bullets: string[];
+  cv_view_url?: string;
+  cv_download_url?: string;
 }
+
+export interface CVInfo {
+  id: number;
+  filename: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+  is_active: boolean;
+  view_url: string;
+  download_url: string;
+}
+
+export interface InterviewQuestionItem {
+  id: string;
+  title: string;
+  category: string;
+  difficulty: string;
+  question: string;
+  expected_answer: string;
+  candidate_edge: string;
+}
+
+export interface InterviewBrainteaserItem {
+  question: string;
+  hint: string;
+  solution: string;
+}
+
+export interface DeskInterviewPrepResponse {
+  desk: string;
+  desk_title: string;
+  overview: string;
+  daily_routine: string[];
+  key_technical_concepts: string[];
+  questions: InterviewQuestionItem[];
+  brainteasers: InterviewBrainteaserItem[];
+  recommended_market_reading: string[];
+}
+
+export interface ATSFitBreakdown {
+  overall_score: number;
+  category_scores: Record<string, number>;
+  strengths: string[];
+  missing_keywords: string[];
+  strategic_advice: string[];
+  recommended_projects: string[];
+}
+
 
 export interface AnalyticsData {
   total_applications: number;

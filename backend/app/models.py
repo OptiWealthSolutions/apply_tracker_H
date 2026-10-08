@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -103,3 +103,17 @@ class ScraperLog(Base):
     results_count = Column(Integer, default=0)
     status = Column(String(50), default="success")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CVDocument(Base):
+    __tablename__ = "cv_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String(255), nullable=False, default="CV_Leo_Lombardini.pdf")
+    mime_type = Column(String(100), nullable=False, default="application/pdf")
+    file_size = Column(Integer, nullable=False)
+    file_bytes = Column(LargeBinary, nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    extracted_text = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+

@@ -88,6 +88,9 @@ def generate_application_pitch(
 
     subject = f"Candidature Stage {job_title} - {candidate_name} ({candidate_school})"
 
+    cv_view_url = "http://127.0.0.1:8000/api/cv/view"
+    cv_download_url = "http://127.0.0.1:8000/api/cv/download"
+
     # Lettre épurée, factuelle, sans fioritures
     cover_letter = f"""Madame, Monsieur,
 
@@ -102,7 +105,7 @@ Mes compétences s'articulent autour de :
 
 Rejoindre votre équipe représente pour moi l'opportunité de mettre directement à profit mon autonomie, ma culture financière et ma réactivité d'exécution sur le desk.
 
-Vous trouverez mon curriculum vitæ joint. Je me tiens à votre entière disposition pour un entretien technique.
+Vous trouverez mon curriculum vitæ joint (également consultable en direct : {cv_view_url}). Je me tiens à votre entière disposition pour un entretien technique.
 
 {candidate_name}
 {candidate_email}
@@ -113,7 +116,7 @@ Vous trouverez mon curriculum vitæ joint. Je me tiens à votre entière disposi
         f"Bonjour,\n\n"
         f"Étudiant en Master 1 Finance à l'EDHEC (Track Financial Markets), je postule au stage '{job_title}' ({desk}) chez {company} (6 mois dès juin 2027).\n\n"
         f"{substance}\n\n"
-        f"Mon CV est joint à ce message. Je suis disponible pour un échange technique à votre convenance.\n\n"
+        f"Mon CV est joint à ce message (également consultable en ligne : {cv_view_url}). Je suis disponible pour un échange technique à votre convenance.\n\n"
         f"Bien cordialement,\n"
         f"{candidate_name}\n"
         f"{candidate_email} | +33 7 85 42 69 11"
@@ -131,7 +134,8 @@ Vous trouverez mon curriculum vitæ joint. Je me tiens à votre entière disposi
         "Fondateur Horacle Capital : conception d'Horacle Hub (scoring macro & fair value en Python)",
         "Modélisation quantitative, backtesting de payoffs asymétriques & convexité",
         "Maîtrise Python (ML finance, data pipelines), MQL5, Excel, Bloomberg",
-        "Disponible dès juin 2027 pour un stage off-cycle de 6 mois"
+        "Disponible dès juin 2027 pour un stage off-cycle de 6 mois",
+        f"Lien CV hébergé en base de données : {cv_view_url}"
     ]
 
     return {
@@ -139,5 +143,7 @@ Vous trouverez mon curriculum vitæ joint. Je me tiens à votre entière disposi
         "cover_letter": cover_letter,
         "quick_email_pitch": quick_pitch,
         "mailto_url": mailto_url,
-        "recommended_portfolio_bullets": bullets
+        "recommended_portfolio_bullets": bullets,
+        "cv_view_url": cv_view_url,
+        "cv_download_url": cv_download_url
     }

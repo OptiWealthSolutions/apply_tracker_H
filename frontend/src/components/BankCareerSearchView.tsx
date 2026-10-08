@@ -11,6 +11,7 @@ import {
   Send,
   Loader2,
   ArrowRight,
+  GraduationCap,
 } from 'lucide-react';
 import type {
   BankDirectoryItem,
@@ -22,6 +23,7 @@ import { api } from '../api/client';
 interface BankCareerSearchViewProps {
   onDirectApply: (offer: JobOffer) => void;
   onOfferImported: (offer: JobOffer) => void;
+  onOpenOfferPrep?: (offer: JobOffer) => void;
 }
 
 const PRESET_BANK_KEYWORDS = [
@@ -37,6 +39,7 @@ const PRESET_BANK_KEYWORDS = [
 export const BankCareerSearchView: React.FC<BankCareerSearchViewProps> = ({
   onDirectApply,
   onOfferImported,
+  onOpenOfferPrep,
 }) => {
   const [banks, setBanks] = useState<BankDirectoryItem[]>([]);
   const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
@@ -434,6 +437,39 @@ export const BankCareerSearchView: React.FC<BankCareerSearchViewProps> = ({
                             </>
                           )}
                         </button>
+
+                        {onOpenOfferPrep && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onOpenOfferPrep({
+                                id: 0,
+                                title: item.title,
+                                company: item.company,
+                                location: item.location,
+                                desk: item.desk,
+                                asset_class: item.asset_class,
+                                contract_type: item.contract_type,
+                                description: item.description,
+                                requirements: item.requirements,
+                                url: item.url,
+                                salary_monthly: item.salary_monthly,
+                                source: item.source,
+                                date_posted: item.date_posted,
+                                start_date: item.start_date,
+                                end_date: item.end_date,
+                                duration_months: item.duration_months,
+                                is_favorite: false,
+                                is_applied: false,
+                              })
+                            }
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 text-xs font-semibold flex items-center gap-1 transition"
+                            title="Score ATS & Questions d'entretien desk"
+                          >
+                            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Entretien & ATS</span>
+                          </button>
+                        )}
 
                         <button
                           type="button"

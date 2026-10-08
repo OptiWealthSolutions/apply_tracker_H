@@ -204,6 +204,8 @@ class ApplyPitchResponse(BaseModel):
     quick_email_pitch: str
     mailto_url: str
     recommended_portfolio_bullets: List[str]
+    cv_view_url: Optional[str] = None
+    cv_download_url: Optional[str] = None
 
 
 # --- BANK DIRECTORY & LIVE SEARCH SCHEMAS ---
@@ -247,4 +249,55 @@ class LiveBankSearchResultItem(BaseModel):
     bank_category: str
     url_status: int = 200
     is_verified: bool = True
+
+
+# --- CV HOSTING SCHEMAS ---
+class CVInfoResponse(BaseModel):
+    id: int
+    filename: str
+    mime_type: str
+    file_size: int
+    uploaded_at: datetime
+    is_active: bool
+    view_url: str
+    download_url: str
+
+
+# --- INTERVIEW TECHNICAL PREPARATION SCHEMAS ---
+class InterviewQuestionItem(BaseModel):
+    id: str
+    title: str
+    category: str
+    difficulty: str
+    question: str
+    expected_answer: str
+    candidate_edge: str
+
+
+class InterviewBrainteaserItem(BaseModel):
+    question: str
+    hint: str
+    solution: str
+
+
+class DeskInterviewPrepResponse(BaseModel):
+    desk: str
+    desk_title: str
+    overview: str
+    daily_routine: List[str]
+    key_technical_concepts: List[str]
+    questions: List[InterviewQuestionItem]
+    brainteasers: List[InterviewBrainteaserItem]
+    recommended_market_reading: List[str]
+
+
+# --- ATS & MATCH ANALYSIS SCHEMAS ---
+class ATSFitBreakdown(BaseModel):
+    overall_score: int
+    category_scores: dict
+    strengths: List[str]
+    missing_keywords: List[str]
+    strategic_advice: List[str]
+    recommended_projects: List[str]
+
 

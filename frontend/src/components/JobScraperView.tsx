@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Calendar,
   Clock,
+  GraduationCap,
 } from 'lucide-react';
 import type { JobOffer } from '../types';
 
@@ -28,6 +29,7 @@ interface JobScraperViewProps {
   onToggleFavorite: (id: number) => void;
   isScraping: boolean;
   isSyncing: boolean;
+  onOpenOfferPrep?: (offer: JobOffer) => void;
 }
 
 const PRESET_QUERIES = [
@@ -49,6 +51,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
   onToggleFavorite,
   isScraping,
   isSyncing,
+  onOpenOfferPrep,
 }) => {
   const [keywords, setKeywords] = useState('stage assistant trader paris');
   const [location, setLocation] = useState('Paris');
@@ -416,6 +419,17 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                   )}
 
                   <div className="flex items-center space-x-2">
+                    {onOpenOfferPrep && (
+                      <button
+                        onClick={() => onOpenOfferPrep(offer)}
+                        className="px-2.5 py-1.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                        title="Score ATS & Questions techniques desk"
+                      >
+                        <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Entretien & ATS</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => onAddToTracker(offer)}
                       disabled={offer.is_applied}

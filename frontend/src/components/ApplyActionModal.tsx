@@ -8,6 +8,8 @@ import {
   Send,
   Sparkles,
   CheckCircle2,
+  FileText,
+  Download,
 } from 'lucide-react';
 import type { JobOffer, Application, ApplyPitchResponse } from '../types';
 import { api } from '../api/client';
@@ -149,6 +151,41 @@ export const ApplyActionModal: React.FC<ApplyActionModalProps> = ({
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
+          </div>
+
+          {/* Action: Hosted CV in Database */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="font-semibold text-slate-800 text-xs">
+                  CV Candidat Hébergé (Léo Lombardini)
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Le lien vers votre CV hébergé en base SQLite est inclus dans l'email ci-dessous.
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={pitchData?.cv_view_url || api.getCVViewUrl()}
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded text-[11px] font-medium flex items-center gap-1 transition"
+              >
+                <ExternalLink className="w-3 h-3 text-blue-600" />
+                <span>Consulter</span>
+              </a>
+              <a
+                href={pitchData?.cv_download_url || api.getCVDownloadUrl()}
+                className="px-2.5 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded text-[11px] font-medium flex items-center gap-1 transition"
+              >
+                <Download className="w-3 h-3 text-slate-600" />
+                <span>Télécharger</span>
+              </a>
+            </div>
           </div>
 
           {/* Action 2: Generated Pitch & Cover Email */}

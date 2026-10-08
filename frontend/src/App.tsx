@@ -9,6 +9,9 @@ import { ApplicationModal } from './components/ApplicationModal';
 import { PreferencesModal } from './components/PreferencesModal';
 import { ApplyActionModal } from './components/ApplyActionModal';
 import { BankCareerSearchView } from './components/BankCareerSearchView';
+import { CVModal } from './components/CVModal';
+import { OfferPrepModal } from './components/OfferPrepModal';
+import { InterviewPrepView } from './components/InterviewPrepView';
 import type {
   Application,
   JobOffer,
@@ -43,6 +46,9 @@ export function App() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [applyTargetOffer, setApplyTargetOffer] = useState<JobOffer | null>(null);
   const [applyTargetApplication, setApplyTargetApplication] = useState<Application | null>(null);
+  const [isCVModalOpen, setIsCVModalOpen] = useState(false);
+  const [isOfferPrepOpen, setIsOfferPrepOpen] = useState(false);
+  const [prepTargetOffer, setPrepTargetOffer] = useState<JobOffer | null>(null);
 
   // Fetch applications
   const loadApplications = useCallback(async () => {
@@ -318,6 +324,12 @@ export function App() {
           subtitle:
             'Algorithme de plus proche voisin recommandant cibles directes et pépites de desks adjacents.',
         };
+      case 'interview-prep':
+        return {
+          title: "Guide d'Entretien Technique Desk",
+          subtitle:
+            "Questions réelles posées par les Traders, démonstrations mathématiques, intuition des Grecs et réponses modèles.",
+        };
       case 'analytics':
         return {
           title: 'Statistiques & Performance du Pipeline',
@@ -332,6 +344,11 @@ export function App() {
     }
   };
 
+  const handleOpenOfferPrep = (offer: JobOffer) => {
+    setPrepTargetOffer(offer);
+    setIsOfferPrepOpen(true);
+  };
+
   const headerMeta = getHeaderMeta();
 
   return (
@@ -343,6 +360,7 @@ export function App() {
         applicationsCount={applications.length}
         profile={profile}
         onOpenPreferences={() => setIsPrefModalOpen(true)}
+        onOpenCVModal={() => setIsCVModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -352,6 +370,7 @@ export function App() {
           subtitle={headerMeta.subtitle}
           onNewApplication={handleNewApplication}
           onOpenPreferences={() => setIsPrefModalOpen(true)}
+          onOpenCVModal={() => setIsCVModalOpen(true)}
           onRefresh={handleMasterRefresh}
           isRefreshing={isRefreshing}
           onSyncRealOffers={handleSyncRealOffers}
@@ -386,6 +405,7 @@ export function App() {
                 onDirectApply={handleDirectApplyFromApplication}
                 onNewApplication={handleNewApplication}
                 onExportCsv={handleExportCsv}
+                onOpenOfferPrep={handleOpenOfferPrep}
               />
             )}
 
@@ -393,6 +413,7 @@ export function App() {
               <BankCareerSearchView
                 onDirectApply={handleDirectApplyFromOffer}
                 onOfferImported={handleOfferImported}
+                onOpenOfferPrep={handleOpenOfferPrep}
               />
             )}
 
@@ -407,6 +428,7 @@ export function App() {
                 onToggleFavorite={handleToggleFavorite}
                 isScraping={isScraping}
                 isSyncing={isSyncing}
+                onOpenOfferPrep={handleOpenOfferPrep}
               />
             )}
 
@@ -418,7 +440,12 @@ export function App() {
                 onAddToTracker={handleAddOfferToTracker}
                 onDirectApply={handleDirectApplyFromOffer}
                 onRefreshKnn={loadRecommendations}
+                onOpenOfferPrep={handleOpenOfferPrep}
               />
+            )}
+
+            {currentTab === 'interview-prep' && (
+              <InterviewPrepView />
             )}
 
             {currentTab === 'analytics' && (
@@ -449,6 +476,18 @@ export function App() {
         targetOffer={applyTargetOffer}
         targetApplication={applyTargetApplication}
         onApplicationCreatedOrUpdated={handleMasterRefresh}
+      />
+
+      <CVModal
+        isOpen={isCVModalOpen}
+        onClose={() => setIsCVModalOpen(false)}
+      />
+
+      <OfferPrepModal
+        isOpen={isOfferPrepOpen}
+        onClose={() => setIsOfferPrepOpen(false)}
+        offer={prepTargetOffer}
+        onOpenPitchModal={handleDirectApplyFromOffer}
       />
     </div>
   );

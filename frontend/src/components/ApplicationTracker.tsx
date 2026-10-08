@@ -16,10 +16,11 @@ import {
   Briefcase,
   Mail,
   Building,
-  Download,
   Calendar,
+  Download,
+  GraduationCap,
 } from 'lucide-react';
-import type { Application, ApplicationStatus } from '../types';
+import type { Application, ApplicationStatus, JobOffer } from '../types';
 
 interface ApplicationTrackerProps {
   applications: Application[];
@@ -29,6 +30,7 @@ interface ApplicationTrackerProps {
   onDirectApply: (app: Application) => void;
   onNewApplication: () => void;
   onExportCsv?: () => void;
+  onOpenOfferPrep?: (offer: JobOffer) => void;
 }
 
 export const STATUS_CONFIG: Record<
@@ -94,11 +96,30 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
   onDirectApply,
   onNewApplication,
   onExportCsv,
+  onOpenOfferPrep,
 }) => {
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deskFilter, setDeskFilter] = useState<string>('all');
+
+  const getOfferFromApp = (app: Application): JobOffer => {
+    if (app.offer) return app.offer;
+    return {
+      id: app.offer_id || app.id,
+      title: app.job_title,
+      company: app.company,
+      location: app.location || 'Paris',
+      desk: app.desk,
+      contract_type: 'Stage',
+      description: app.notes || `${app.job_title} chez ${app.company}`,
+      url: app.application_url,
+      salary_monthly: app.salary_monthly,
+      source: 'Tracker',
+      is_favorite: false,
+      is_applied: true,
+    };
+  };
 
   // Filter applications
   const filteredApps = applications.filter((app) => {
@@ -348,6 +369,15 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end space-x-1.5 opacity-80 group-hover:opacity-100 transition">
+                          {onOpenOfferPrep && (
+                            <button
+                              onClick={() => onOpenOfferPrep(getOfferFromApp(app))}
+                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100/60 rounded"
+                              title="Guide d'entretien desk & Score ATS"
+                            >
+                              <GraduationCap className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => onDirectApply(app)}
                             className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100/60 rounded"
@@ -452,12 +482,23 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
 
                       {/* Card Bottom Actions */}
                       <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <button
-                          onClick={() => onDirectApply(app)}
-                          className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                        >
-                          <Send className="w-2.5 h-2.5" /> Postuler / Pitch
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => onDirectApply(app)}
+                            className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                          >
+                            <Send className="w-2.5 h-2.5" /> Postuler
+                          </button>
+                          {onOpenOfferPrep && (
+                            <button
+                              onClick={() => onOpenOfferPrep(getOfferFromApp(app))}
+                              className="text-[10px] text-slate-500 hover:text-blue-600 flex items-center gap-0.5"
+                              title="Guide d'entretien desk & Score ATS"
+                            >
+                              <GraduationCap className="w-2.5 h-2.5 text-blue-600" /> Entretien
+                            </button>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-1">
                           <button
                             onClick={() => onEditApplication(app)}

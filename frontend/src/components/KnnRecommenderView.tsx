@@ -8,6 +8,7 @@ import {
   ExternalLink,
   CheckCircle2,
   TrendingUp,
+  GraduationCap,
 } from 'lucide-react';
 import type { RecommendationResponse, RecommendationItem, JobOffer } from '../types';
 
@@ -18,6 +19,7 @@ interface KnnRecommenderViewProps {
   onAddToTracker: (offer: JobOffer) => void;
   onDirectApply: (offer: JobOffer) => void;
   onRefreshKnn: () => void;
+  onOpenOfferPrep?: (offer: JobOffer) => void;
 }
 
 export const KnnRecommenderView: React.FC<KnnRecommenderViewProps> = ({
@@ -27,6 +29,7 @@ export const KnnRecommenderView: React.FC<KnnRecommenderViewProps> = ({
   onAddToTracker,
   onDirectApply,
   onRefreshKnn,
+  onOpenOfferPrep,
 }) => {
   const [activeTab, setActiveTab] = useState<'serendipity' | 'direct'>('serendipity');
 
@@ -245,6 +248,17 @@ export const KnnRecommenderView: React.FC<KnnRecommenderViewProps> = ({
                 )}
 
                 <div className="flex items-center space-x-2">
+                  {onOpenOfferPrep && (
+                    <button
+                      onClick={() => onOpenOfferPrep(offer)}
+                      className="px-2.5 py-1.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition"
+                      title="Score ATS & Guide d'entretien desk"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Entretien & ATS</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => onAddToTracker(offer)}
                     disabled={offer.is_applied}

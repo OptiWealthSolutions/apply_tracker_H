@@ -7,6 +7,7 @@ import random
 import httpx
 from bs4 import BeautifulSoup
 from curl_cffi.requests import AsyncSession
+from .deep_page_validator import deep_verify_page
 
 BROWSERS = ["chrome120", "chrome110", "safari17_0", "safari15_5", "edge99"]
 
@@ -202,50 +203,16 @@ def infer_desk_and_asset_class(title: str, text: str) -> Tuple[str, str]:
 
 async def verify_job_url(arg1: Any, arg2: Any = None) -> Tuple[bool, int, str]:
     """
-    Asynchronously verifies whether an offer URL actually exists and is active (HTTP 200).
-    Compatible with:
-      - verify_job_url(url)
-      - verify_job_url(client, url)
+    Asynchronously verifies whether an offer URL actually exists and is active (HTTP 200)
+    using deep soft 404 detection, title analysis, and ATS expired phrasing detection.
     """
     if isinstance(arg1, str):
         url = arg1
-        client = None
     else:
-        client = arg1
         url = arg2 or ""
 
-    clean_url = clean_tracking_url(url)
-    if not clean_url or not clean_url.startswith("http"):
-        return False, 400, clean_url
-
-    try:
-        browser = random.choice(BROWSERS)
-        async with AsyncSession(impersonate=browser) as session:
-            resp = await session.get(clean_url, allow_redirects=True, timeout=6.0)
-            code = resp.status_code
-            text_body = resp.text[:4000].lower()
-
-        if code in [200, 204, 301, 302, 307, 308]:
-            for indicator in DEAD_JOB_INDICATORS:
-                if indicator in text_body:
-                    return False, 404, clean_url
-            return True, code, clean_url
-        elif code in [404, 410, 500, 502, 503]:
-            return False, code, clean_url
-        else:
-            return (code < 400), code, clean_url
-    except Exception:
-        try:
-            async with httpx.AsyncClient(headers=HEADERS, timeout=5.0, follow_redirects=True) as h_client:
-                r = await h_client.get(clean_url)
-                if r.status_code in [200, 204, 301, 302, 307, 308]:
-                    for indicator in DEAD_JOB_INDICATORS:
-                        if indicator in r.text[:4000].lower():
-                            return False, 404, clean_url
-                    return True, r.status_code, clean_url
-                return (r.status_code < 400), r.status_code, clean_url
-        except Exception:
-            return False, 500, clean_url
+    is_valid, code, clean_url, _ = await deep_verify_page(url)
+    return is_valid, code, clean_url
 
 
 async def fetch_page_with_retry(query: str, location: str, offset: int = 0) -> List[Dict[str, Any]]:

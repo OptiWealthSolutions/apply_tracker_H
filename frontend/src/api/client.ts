@@ -10,6 +10,9 @@ import type {
   BankDirectoryItem,
   LiveBankSearchRequest,
   LiveBankSearchResultItem,
+  CVInfo,
+  DeskInterviewPrepResponse,
+  ATSFitBreakdown,
 } from '../types';
 
 const API_BASE = '/api';
@@ -197,5 +200,53 @@ export const api = {
     if (!res.ok) throw new Error("Erreur lors de l'import de l'offre bancaire");
     return res.json();
   },
+
+  // CV Storage & Streaming
+  async getCVInfo(): Promise<CVInfo> {
+    const res = await fetch(`${API_BASE}/cv/info`);
+    if (!res.ok) throw new Error('Erreur lors de la récupération des informations du CV');
+    return res.json();
+  },
+
+  getCVViewUrl(): string {
+    return `${API_BASE}/cv/view`;
+  },
+
+  getCVDownloadUrl(): string {
+    return `${API_BASE}/cv/download`;
+  },
+
+  async uploadCV(file: File): Promise<CVInfo> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/cv/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Erreur lors de l'upload du CV");
+    return res.json();
+  },
+
+  // Technical Interview Prep Guide
+  async getInterviewPrep(desk?: string): Promise<DeskInterviewPrepResponse> {
+    const url = desk ? `${API_BASE}/interview-prep?desk=${encodeURIComponent(desk)}` : `${API_BASE}/interview-prep`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erreur lors du chargement du guide d entretien');
+    return res.json();
+  },
+
+  async getOfferInterviewPrep(offerId: number): Promise<DeskInterviewPrepResponse> {
+    const res = await fetch(`${API_BASE}/offers/${offerId}/interview-prep`);
+    if (!res.ok) throw new Error('Erreur lors du chargement du guide d entretien pour cette offre');
+    return res.json();
+  },
+
+  // ATS Fit & Match Analyzer
+  async getOfferATSAnalysis(offerId: number): Promise<ATSFitBreakdown> {
+    const res = await fetch(`${API_BASE}/offers/${offerId}/ats-analysis`);
+    if (!res.ok) throw new Error("Erreur lors de l'analyse ATS de cette offre");
+    return res.json();
+  },
 };
+
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, SlidersHorizontal, RefreshCw, Bell, Download, CheckCircle2 } from 'lucide-react';
+import { Plus, SlidersHorizontal, RefreshCw, Bell, Download, CheckCircle2, FileText } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -13,6 +13,7 @@ interface HeaderProps {
   onExportCsv: () => void;
   followUpAlertCount?: number;
   lastSyncTime?: string;
+  onOpenCVModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onExportCsv,
   followUpAlertCount = 0,
   lastSyncTime,
+  onOpenCVModal,
 }) => {
   return (
     <header className="bg-white border-b border-slate-200 px-8 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20">
@@ -81,6 +83,17 @@ export const Header: React.FC<HeaderProps> = ({
             title="Rafraîchir"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : ''}`} />
+          </button>
+        )}
+
+        {onOpenCVModal && (
+          <button
+            onClick={onOpenCVModal}
+            className="inline-flex items-center space-x-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-xs transition-colors"
+            title="Consulter et gérer mon CV hébergé en base SQLite"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-600" />
+            <span>Mon CV Hébergé</span>
           </button>
         )}
 

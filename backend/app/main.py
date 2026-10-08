@@ -4,14 +4,14 @@ import io
 import asyncio
 from datetime import datetime
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi import FastAPI, Depends, HTTPException, Query, status, Response, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
 from .database import engine, Base, get_db
-from .models import JobOffer, Application, UserProfile, ScraperLog
+from .models import JobOffer, Application, UserProfile, ScraperLog, CVDocument
 from .schemas import (
     JobOfferCreate, JobOfferResponse,
     ApplicationCreate, ApplicationUpdate, ApplicationResponse,
@@ -20,7 +20,8 @@ from .schemas import (
     SyncResponse,
     RecommendationResponse,
     ApplyPitchRequest, ApplyPitchResponse,
-    BankDirectoryItem, LiveBankSearchRequest, LiveBankSearchResultItem
+    BankDirectoryItem, LiveBankSearchRequest, LiveBankSearchResultItem,
+    CVInfoResponse, DeskInterviewPrepResponse, ATSFitBreakdown
 )
 from .scraper import (
     sync_and_verify_real_jobs,
@@ -34,6 +35,8 @@ from .bank_career_crawler import get_bank_directory, search_bank_careers_live
 from .date_extractor import extract_internship_dates
 from .recommender import compute_knn_recommendations
 from .email_generator import generate_application_pitch
+from .interview_prep import get_interview_prep_for_desk
+from .ats_analyzer import analyze_ats_fit
 from .seed_data import seed_database
 
 # Create DB schema tables
@@ -662,4 +665,127 @@ def import_bank_offer_endpoint(offer_data: LiveBankSearchResultItem, db: Session
     db.commit()
     db.refresh(new_offer)
     return new_offer
+
+
+# ==========================================================
+# CV DATABASE HOSTING & STREAMING ENDPOINTS
+# ==========================================================
+@app.get("/api/cv/info", response_model=CVInfoResponse)
+def get_cv_info(db: Session = Depends(get_db)):
+    """Returns metadata for the currently active CV stored in the database."""
+    cv = db.query(CVDocument).filter(CVDocument.is_active == True).order_by(desc(CVDocument.uploaded_at)).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="Aucun CV actif hébergé dans la base de données.")
+    
+    return CVInfoResponse(
+        id=cv.id,
+        filename=cv.filename,
+        mime_type=cv.mime_type,
+        file_size=cv.file_size,
+        uploaded_at=cv.uploaded_at,
+        is_active=cv.is_active,
+        view_url="/api/cv/view",
+        download_url="/api/cv/download"
+    )
+
+
+@app.get("/api/cv/view")
+def view_cv_inline(db: Session = Depends(get_db)):
+    """Streams active CV PDF directly inline for in-browser inspection."""
+    cv = db.query(CVDocument).filter(CVDocument.is_active == True).order_by(desc(CVDocument.uploaded_at)).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV introuvable.")
+    
+    return Response(
+        content=cv.file_bytes,
+        media_type=cv.mime_type or "application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{cv.filename}"'}
+    )
+
+
+@app.get("/api/cv/download")
+def download_cv_file(db: Session = Depends(get_db)):
+    """Downloads active CV PDF with attachment disposition."""
+    cv = db.query(CVDocument).filter(CVDocument.is_active == True).order_by(desc(CVDocument.uploaded_at)).first()
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV introuvable.")
+    
+    return Response(
+        content=cv.file_bytes,
+        media_type=cv.mime_type or "application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{cv.filename}"'}
+    )
+
+
+@app.post("/api/cv/upload", response_model=CVInfoResponse)
+async def upload_cv_document(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Uploads a new CV binary document and sets it as the active version."""
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Fichier PDF vide.")
+    
+    # Mark existing active CVs as inactive
+    db.query(CVDocument).filter(CVDocument.is_active == True).update({"is_active": False})
+    
+    new_cv = CVDocument(
+        filename=file.filename or "CV_Leo_Lombardini.pdf",
+        mime_type=file.content_type or "application/pdf",
+        file_size=len(content),
+        file_bytes=content,
+        is_active=True,
+        uploaded_at=datetime.utcnow()
+    )
+    db.add(new_cv)
+    db.commit()
+    db.refresh(new_cv)
+    
+    return CVInfoResponse(
+        id=new_cv.id,
+        filename=new_cv.filename,
+        mime_type=new_cv.mime_type,
+        file_size=new_cv.file_size,
+        uploaded_at=new_cv.uploaded_at,
+        is_active=new_cv.is_active,
+        view_url="/api/cv/view",
+        download_url="/api/cv/download"
+    )
+
+
+# ==========================================================
+# INTERVIEW TECHNICAL PREPARATION GUIDE ENDPOINTS
+# ==========================================================
+@app.get("/api/interview-prep", response_model=DeskInterviewPrepResponse)
+def get_interview_prep(desk: Optional[str] = Query("Equity Derivatives")):
+    """Returns technical desk preparation guide, questions, and institutional answers."""
+    return get_interview_prep_for_desk(desk)
+
+
+@app.get("/api/offers/{offer_id}/interview-prep", response_model=DeskInterviewPrepResponse)
+def get_offer_interview_prep(offer_id: int, db: Session = Depends(get_db)):
+    """Returns desk-specific interview preparation matched to a specific job offer."""
+    offer = db.query(JobOffer).filter(JobOffer.id == offer_id).first()
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offre introuvable.")
+    return get_interview_prep_for_desk(offer.desk)
+
+
+# ==========================================================
+# ATS FIT & MATCH ANALYSIS ENDPOINT
+# ==========================================================
+@app.get("/api/offers/{offer_id}/ats-analysis", response_model=ATSFitBreakdown)
+def get_offer_ats_analysis(offer_id: int, db: Session = Depends(get_db)):
+    """
+    Computes rigorous ATS fit score, strength highlights,
+    and missing keywords between Léo Lombardini's CV and the job requisition.
+    """
+    offer = db.query(JobOffer).filter(JobOffer.id == offer_id).first()
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offre introuvable.")
+    return analyze_ats_fit(
+        job_title=offer.title,
+        desk=offer.desk,
+        description=offer.description,
+        requirements=offer.requirements or ""
+    )
+
 

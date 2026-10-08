@@ -8,6 +8,8 @@ import {
   Database,
   TrendingUp,
   Building2,
+  GraduationCap,
+  FileText,
 } from 'lucide-react';
 import type { UserProfile } from '../types';
 
@@ -17,6 +19,7 @@ interface SidebarProps {
   applicationsCount: number;
   profile: UserProfile | null;
   onOpenPreferences: () => void;
+  onOpenCVModal?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -25,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   applicationsCount,
   profile,
   onOpenPreferences,
+  onOpenCVModal,
 }) => {
   const navItems = [
     {
@@ -52,6 +56,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Conseiller KNN',
       subtext: 'Plus Proche Voisin & Pépites',
       icon: Compass,
+    },
+    {
+      id: 'interview-prep',
+      label: 'Guide Entretien Desk',
+      subtext: 'Questions & Grecs Desk',
+      icon: GraduationCap,
+      highlight: true,
     },
     {
       id: 'analytics',
@@ -161,7 +172,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* User Preferences & Local DB Footer */}
-      <div className="p-4 border-t border-[#163356] bg-[#09172A] space-y-3">
+      <div className="p-4 border-t border-[#163356] bg-[#09172A] space-y-2.5">
+        {onOpenCVModal && (
+          <button
+            onClick={onOpenCVModal}
+            className="w-full flex items-center justify-between p-2 rounded-lg bg-[#0E1E33] hover:bg-[#142A47] text-slate-300 transition-colors border border-[#18365B] text-xs"
+          >
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4 text-blue-400" />
+              <span className="font-medium text-slate-200">Mon CV Hébergé</span>
+            </div>
+            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">
+              PDF
+            </span>
+          </button>
+        )}
+
         <button
           onClick={onOpenPreferences}
           className="w-full flex items-center justify-between p-2.5 rounded-lg bg-[#11243E] hover:bg-[#183458] text-slate-200 transition-colors border border-[#1C3B65]"

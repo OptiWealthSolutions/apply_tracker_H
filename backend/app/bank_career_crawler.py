@@ -11,9 +11,9 @@ from .scraper import (
     clean_job_title,
     infer_desk_and_asset_class,
     is_finance_job,
-    verify_job_url,
 )
 from .date_extractor import extract_internship_dates
+from .deep_page_validator import deep_verify_page
 
 # Comprehensive Registry of French and Anglophone Banks & Institutions
 BANK_DIRECTORIES: List[Dict[str, Any]] = [
@@ -369,7 +369,7 @@ async def search_bank_careers_live(
     async def verify_item(item: Dict[str, Any]):
         async with sem:
             await asyncio.sleep(0.08)
-            is_valid, code, clean_u = await verify_job_url(item["url"])
+            is_valid, code, clean_u, failure_reason = await deep_verify_page(item["url"])
             if is_valid and code in [200, 204, 301, 302, 307, 308]:
                 item["url"] = clean_u
                 item["url_status"] = code
