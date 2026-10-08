@@ -10,6 +10,7 @@ import {
   Building2,
   GraduationCap,
   FileText,
+  Award,
 } from 'lucide-react';
 import type { UserProfile } from '../types';
 
@@ -40,10 +41,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'bank-search',
-      label: 'Portails Banques & Direct',
-      subtext: 'BNP, SG, JPM, Barclays...',
+      label: 'Portails & Carrières Direct',
+      subtext: 'Banques, M&A, PE, Audit, Conseil',
       icon: Building2,
       highlight: true,
+    },
+    {
+      id: 'cv-audit',
+      label: 'Audit Qualité CV & Lettre',
+      subtext: 'Formule Google XYZ & Mots-Clés',
+      icon: Award,
+      highlight: true,
+    },
+    {
+      id: 'preferences',
+      label: 'Préférences & Métiers',
+      subtext: 'Finance, M&A, PE, Audit, Conseil',
+      icon: Sliders,
     },
     {
       id: 'scraper',
@@ -189,7 +203,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <button
-          onClick={onOpenPreferences}
+          onClick={() => {
+            setCurrentTab('preferences');
+            if (onOpenPreferences) onOpenPreferences();
+          }}
           className="w-full flex items-center justify-between p-2.5 rounded-lg bg-[#11243E] hover:bg-[#183458] text-slate-200 transition-colors border border-[#1C3B65]"
         >
           <div className="flex items-center space-x-2.5 min-w-0">

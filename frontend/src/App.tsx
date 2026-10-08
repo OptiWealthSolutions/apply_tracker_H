@@ -7,6 +7,8 @@ import { KnnRecommenderView } from './components/KnnRecommenderView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { ApplicationModal } from './components/ApplicationModal';
 import { PreferencesModal } from './components/PreferencesModal';
+import { PreferencesView } from './components/PreferencesView';
+import { CVAuditView } from './components/CVAuditView';
 import { ApplyActionModal } from './components/ApplyActionModal';
 import { BankCareerSearchView } from './components/BankCareerSearchView';
 import { CVModal } from './components/CVModal';
@@ -308,9 +310,21 @@ export function App() {
         };
       case 'bank-search':
         return {
-          title: 'Portails Carrières Directs des Banques & Recherche Live',
+          title: 'Portails Carrières Directs des Entreprises & Recherche Live',
           subtitle:
-            'Interrogez en direct les plateformes officielles des banques françaises et anglophones avec extraction des dates de stage.',
+            'Interrogez en direct les plateformes officielles des banques d\'investissement, cabinets de conseil, Big 4 et fonds alternatifs.',
+        };
+      case 'cv-audit':
+        return {
+          title: 'Audit Qualité CV & Lettre de Motivation',
+          subtitle:
+            'Algorithme quantitatif d\'évaluation : formule Google XYZ, densité TF-IDF & salience des mots-clés, verbes d\'action et calibrage MD.',
+        };
+      case 'preferences':
+        return {
+          title: 'Préférences Professionnelles & Cartographie des Métiers',
+          subtitle:
+            'Cartographie intégrale des métiers en Finance de Marché, Corporate Finance, Private Equity, Asset Management, Audit, Conseil en Stratégie et Quant Tech.',
         };
       case 'scraper':
         return {
@@ -369,7 +383,7 @@ export function App() {
           title={headerMeta.title}
           subtitle={headerMeta.subtitle}
           onNewApplication={handleNewApplication}
-          onOpenPreferences={() => setIsPrefModalOpen(true)}
+          onOpenPreferences={() => setCurrentTab('preferences')}
           onOpenCVModal={() => setIsCVModalOpen(true)}
           onRefresh={handleMasterRefresh}
           isRefreshing={isRefreshing}
@@ -446,6 +460,20 @@ export function App() {
 
             {currentTab === 'interview-prep' && (
               <InterviewPrepView />
+            )}
+
+            {currentTab === 'cv-audit' && (
+              <CVAuditView />
+            )}
+
+            {currentTab === 'preferences' && (
+              <PreferencesView
+                initialProfile={profile}
+                onProfileUpdated={(updated) => {
+                  setProfile(updated);
+                  loadRecommendations();
+                }}
+              />
             )}
 
             {currentTab === 'analytics' && (

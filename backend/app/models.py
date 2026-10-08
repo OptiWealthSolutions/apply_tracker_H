@@ -79,6 +79,7 @@ class UserProfile(Base):
     degree_level = Column(String(50), nullable=False, default="Master 2 / PFE")
     
     # Stored as JSON strings
+    target_domains = Column(Text, nullable=True, default='["Finance de Marché", "M&A & Corporate Finance", "Private Equity & VC", "Asset Management & Hedge Funds", "Audit & Transaction Services", "Conseil en Stratégie"]')
     target_roles = Column(Text, nullable=False, default='["Assistant Trader", "Quant Research", "Structuring Produits Structurés"]')
     target_locations = Column(Text, nullable=False, default='["Paris", "Londres", "Genève"]')
     target_asset_classes = Column(Text, nullable=False, default='["Equity Derivatives", "Rates & FX", "Volatility", "Commodities"]')

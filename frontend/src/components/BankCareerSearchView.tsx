@@ -246,61 +246,94 @@ export const BankCareerSearchView: React.FC<BankCareerSearchViewProps> = ({
             ))}
           </div>
 
-          {/* Bank Category Quick Filters */}
+          {/* Category Quick Filters */}
           <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-2">
-                Filtre Institutions :
+                Filtre Secteurs :
               </span>
               <button
                 type="button"
                 onClick={() => handleSelectCategory('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                   activeCategoryFilter === 'all'
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Toutes ({banks.length})
+                Tous ({banks.length})
               </button>
               <button
                 type="button"
-                onClick={() => handleSelectCategory('Française')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                  activeCategoryFilter === 'Française'
+                onClick={() => handleSelectCategory("Banque d'Investissement")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  activeCategoryFilter === "Banque d'Investissement"
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Banques Françaises (BNP, SG, Natixis, CA...)
+                Banques CIB (BNP, SG, JPM, Barclays...)
               </button>
               <button
                 type="button"
-                onClick={() => handleSelectCategory('Anglophone')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                  activeCategoryFilter === 'Anglophone'
+                onClick={() => handleSelectCategory('M&A')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  activeCategoryFilter === 'M&A'
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Banques Anglophones & Globales (JPMorgan, Goldman, Barclays...)
+                M&A Boutiques (Rothschild, Lazard, Evercore...)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectCategory('Private Equity')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  activeCategoryFilter === 'Private Equity'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Private Equity & AM (Ardian, Eurazeo, EQT, Amundi...)
               </button>
               <button
                 type="button"
                 onClick={() => handleSelectCategory('Hedge Fund')}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
                   activeCategoryFilter === 'Hedge Fund'
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Hedge Funds & AM (Brevan Howard, Balyasny, Maven...)
+                Hedge Funds & Prop (Citadel, Point72, Jane Street, Optiver...)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectCategory('Audit')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  activeCategoryFilter === 'Audit'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Audit & TS (PwC, Deloitte, EY, KPMG, Mazars)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectCategory('Conseil')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  activeCategoryFilter === 'Conseil'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Conseil Stratégie (McKinsey, BCG, Bain, Oliver Wyman...)
               </button>
             </div>
 
             {selectedBankIds.length > 0 && (
               <span className="text-[11px] font-semibold text-blue-600">
-                {selectedBankIds.length} banque(s) ciblée(s)
+                {selectedBankIds.length} portail(s) ciblé(s)
               </span>
             )}
           </div>

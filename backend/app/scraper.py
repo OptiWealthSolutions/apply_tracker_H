@@ -93,7 +93,10 @@ FINANCE_POSITIVE = [
     "sales trading", "market risk", "risque de marché", "dcm", "ecm", "etf",
     "securities", "cib", "investment bank", "dealing", "gérant", "monétaire", "convex",
     "fintech", "wealth", "buy-side", "buyside", "private equity", "private debt", "crypto",
-    "digital asset", "analyste financier", "portfolio", "systematic", "alpha"
+    "digital asset", "analyste financier", "portfolio", "systematic", "alpha",
+    "m&a", "fusion", "acquisition", "lbo", "due diligence", "transaction services",
+    "audit", "commissariat aux comptes", "consolidation", "forensic", "restructuring",
+    "conseil en stratégie", "strategy consulting", "consultant", "corporate finance"
 ]
 
 NEGATIVE_KEYWORDS = [

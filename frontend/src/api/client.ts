@@ -13,6 +13,8 @@ import type {
   CVInfo,
   DeskInterviewPrepResponse,
   ATSFitBreakdown,
+  CVAuditResponse,
+  CoverLetterAuditResponse,
 } from '../types';
 
 const API_BASE = '/api';
@@ -247,6 +249,42 @@ export const api = {
     if (!res.ok) throw new Error("Erreur lors de l'analyse ATS de cette offre");
     return res.json();
   },
+
+  // CV & Cover Letter Quality / Keyword Ranking Audit
+  async auditCurrentCV(): Promise<CVAuditResponse> {
+    const res = await fetch(`${API_BASE}/cv/audit/current`);
+    if (!res.ok) throw new Error("Erreur lors de l'audit du CV actif");
+    return res.json();
+  },
+
+  async auditCV(cvText?: string, targetCategory?: string): Promise<CVAuditResponse> {
+    const res = await fetch(`${API_BASE}/cv/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cv_text: cvText, target_category: targetCategory }),
+    });
+    if (!res.ok) throw new Error("Erreur lors de l'audit du CV");
+    return res.json();
+  },
+
+  async auditCoverLetter(
+    coverLetterText: string,
+    targetCompany?: string,
+    targetRole?: string
+  ): Promise<CoverLetterAuditResponse> {
+    const res = await fetch(`${API_BASE}/cover-letter/audit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cover_letter_text: coverLetterText,
+        target_company: targetCompany,
+        target_role: targetRole,
+      }),
+    });
+    if (!res.ok) throw new Error("Erreur lors de l'audit de la lettre de motivation");
+    return res.json();
+  },
 };
+
 
 

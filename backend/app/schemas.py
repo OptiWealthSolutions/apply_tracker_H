@@ -102,6 +102,15 @@ class UserProfileBase(BaseModel):
     phone: Optional[str] = "+33 6 12 34 56 78"
     school: str = "Grande École d'Ingénieur / Université Dauphine Master 203"
     degree_level: str = "Master 2 / PFE"
+    target_domains: Optional[List[str]] = [
+        "Finance de Marché (S&T / Structuring / Quant)",
+        "Corporate Finance / M&A",
+        "Private Equity & Venture Capital",
+        "Asset Management & Hedge Funds",
+        "Audit & Transaction Services",
+        "Conseil en Stratégie & Management",
+        "Fintech & Quantitative Development"
+    ]
     target_roles: List[str] = ["Assistant Trader", "Quant Research", "Structuring Produits Structurés"]
     target_locations: List[str] = ["Paris", "Londres", "Genève"]
     target_asset_classes: List[str] = ["Equity Derivatives", "Rates & FX", "Volatility", "Commodities"]
@@ -119,6 +128,7 @@ class UserProfileUpdate(BaseModel):
     phone: Optional[str] = None
     school: Optional[str] = None
     degree_level: Optional[str] = None
+    target_domains: Optional[List[str]] = None
     target_roles: Optional[List[str]] = None
     target_locations: Optional[List[str]] = None
     target_asset_classes: Optional[List[str]] = None
@@ -137,6 +147,7 @@ class UserProfileResponse(BaseModel):
     phone: Optional[str] = None
     school: str
     degree_level: str
+    target_domains: Optional[List[str]] = None
     target_roles: List[str]
     target_locations: List[str]
     target_asset_classes: List[str]
@@ -299,5 +310,18 @@ class ATSFitBreakdown(BaseModel):
     missing_keywords: List[str]
     strategic_advice: List[str]
     recommended_projects: List[str]
+
+
+# --- CV & COVER LETTER AUDIT REQUEST SCHEMAS ---
+class CVAuditRequest(BaseModel):
+    cv_text: Optional[str] = None
+    target_category: Optional[str] = "Finance de Marché & Trading"
+
+
+class CoverLetterAuditRequest(BaseModel):
+    cover_letter_text: str
+    target_company: Optional[str] = ""
+    target_role: Optional[str] = ""
+
 
 

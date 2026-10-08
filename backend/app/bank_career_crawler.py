@@ -17,21 +17,21 @@ from .deep_page_validator import deep_verify_page
 
 # Comprehensive Registry of French and Anglophone Banks & Institutions
 BANK_DIRECTORIES: List[Dict[str, Any]] = [
-    # --- French Banks & Asset Managers ---
+    # --- 1. BANQUES D'INVESTISSEMENT & MARCHÉS (CIB) ---
     {
         "id": "bnp_paribas",
-        "name": "BNP Paribas",
-        "category": "Banque Française",
-        "region": "France / Europe",
+        "name": "BNP Paribas CIB",
+        "category": "Banque d'Investissement",
+        "region": "France / Europe / Global",
         "career_portal_url": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi",
         "search_url_template": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi?keyword={query}",
         "specialties": ["Global Markets", "Equity Derivatives", "Fixed Income", "Asset Management"]
     },
     {
         "id": "societe_generale",
-        "name": "Société Générale",
-        "category": "Banque Française",
-        "region": "France / Europe",
+        "name": "Société Générale CIB",
+        "category": "Banque d'Investissement",
+        "region": "France / Europe / Global",
         "career_portal_url": "https://careers.societegenerale.com/recherche-d-offres",
         "search_url_template": "https://careers.societegenerale.com/recherche-d-offres?keyword={query}",
         "specialties": ["SGCIB", "Derivatives", "Quant Trading", "Cross-Asset Research"]
@@ -39,8 +39,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "credit_agricole_cib",
         "name": "Crédit Agricole CIB / Amundi",
-        "category": "Banque Française",
-        "region": "France / Europe",
+        "category": "Banque d'Investissement",
+        "region": "France / Europe / Global",
         "career_portal_url": "https://www.groupecreditagricole.jobs/nos-offres-d-emploi/",
         "search_url_template": "https://www.groupecreditagricole.jobs/nos-offres-d-emploi/?keywords={query}",
         "specialties": ["Rates & FX", "Structured Finance", "Asset Management (Amundi)"]
@@ -48,34 +48,16 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "natixis_bpce",
         "name": "Natixis CIB (Groupe BPCE)",
-        "category": "Banque Française",
+        "category": "Banque d'Investissement",
         "region": "France / Europe",
         "career_portal_url": "https://recrutement.bpce.fr/nos-offres/",
         "search_url_template": "https://recrutement.bpce.fr/nos-offres/?query={query}",
         "specialties": ["Equity Derivatives", "Fixed Income", "Commodities", "Mirova"]
     },
     {
-        "id": "lazard",
-        "name": "Lazard Frères",
-        "category": "Banque Française / Internationale",
-        "region": "France / Global",
-        "career_portal_url": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers",
-        "search_url_template": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers?q={query}",
-        "specialties": ["Lazard Asset Management", "Financial Advisory", "Produits Structurés"]
-    },
-    {
-        "id": "rothschild_co",
-        "name": "Rothschild & Co",
-        "category": "Banque Française / Internationale",
-        "region": "France / Global",
-        "career_portal_url": "https://www.rothschildandco.com/en/careers/opportunities/",
-        "search_url_template": "https://www.rothschildandco.com/en/careers/opportunities/?search={query}",
-        "specialties": ["Produits Structurés", "Global Advisory", "Merchant Banking"]
-    },
-    {
         "id": "oddo_bhf",
         "name": "Oddo BHF",
-        "category": "Banque Franco-Allemande",
+        "category": "Banque d'Investissement",
         "region": "France / Allemagne",
         "career_portal_url": "https://www.oddo-bhf.com/fr/carrieres",
         "search_url_template": "https://www.oddo-bhf.com/fr/carrieres?query={query}",
@@ -84,19 +66,17 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "kepler_cheuvreux",
         "name": "Kepler Cheuvreux",
-        "category": "Banque Française / Broker",
+        "category": "Banque d'Investissement",
         "region": "Europe",
         "career_portal_url": "https://www.keplercheuvreux.com/careers/",
         "search_url_template": "https://www.keplercheuvreux.com/careers/?s={query}",
         "specialties": ["Equity Research", "Execution", "Fixed Income"]
     },
-
-    # --- Anglophone & Global Tier-1 Banks ---
     {
         "id": "jpmorgan",
         "name": "JPMorgan Chase",
-        "category": "Banque Anglophone",
-        "region": "US / Global",
+        "category": "Banque d'Investissement",
+        "region": "US / UK / Global",
         "career_portal_url": "https://careers.jpmorgan.com/global/en/students/programs",
         "search_url_template": "https://careers.jpmorgan.com/global/en/search-results?keywords={query}",
         "specialties": ["Global Markets", "Quantitative Research", "FICC", "Equity Trading"]
@@ -104,8 +84,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "goldman_sachs",
         "name": "Goldman Sachs",
-        "category": "Banque Anglophone",
-        "region": "US / Global",
+        "category": "Banque d'Investissement",
+        "region": "US / UK / Global",
         "career_portal_url": "https://www.goldmansachs.com/careers/students/programs/",
         "search_url_template": "https://www.goldmansachs.com/careers/students/programs/?search={query}",
         "specialties": ["Global Banking & Markets", "Quantitative Strategies", "Asset Management"]
@@ -113,8 +93,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "morgan_stanley",
         "name": "Morgan Stanley",
-        "category": "Banque Anglophone",
-        "region": "US / Global",
+        "category": "Banque d'Investissement",
+        "region": "US / UK / Global",
         "career_portal_url": "https://www.morganstanley.com/people-opportunities/students-graduates",
         "search_url_template": "https://www.morganstanley.com/people-opportunities/students-graduates?search={query}",
         "specialties": ["Institutional Securities", "Sales & Trading", "Fixed Income", "Quantitative Modeling"]
@@ -122,7 +102,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "barclays",
         "name": "Barclays",
-        "category": "Banque Anglophone",
+        "category": "Banque d'Investissement",
         "region": "UK / Global",
         "career_portal_url": "https://search.jobs.barclays/",
         "search_url_template": "https://search.jobs.barclays/search-jobs/{query}",
@@ -131,7 +111,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "deutsche_bank",
         "name": "Deutsche Bank",
-        "category": "Banque Anglophone / Internationale",
+        "category": "Banque d'Investissement",
         "region": "Allemagne / UK / US",
         "career_portal_url": "https://careers.db.com/students-graduates/",
         "search_url_template": "https://careers.db.com/students-graduates/?search={query}",
@@ -140,7 +120,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "ubs",
         "name": "UBS",
-        "category": "Banque Anglophone / Suisse",
+        "category": "Banque d'Investissement",
         "region": "Suisse / Global",
         "career_portal_url": "https://jobs.ubs.com/",
         "search_url_template": "https://jobs.ubs.com/TGnewUI/Search/Home/HomeWithPreLoad?partnerid=25008&siteid=5012#keyWordSearch={query}",
@@ -149,7 +129,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "hsbc",
         "name": "HSBC",
-        "category": "Banque Anglophone",
+        "category": "Banque d'Investissement",
         "region": "UK / Global",
         "career_portal_url": "https://mycareer.hsbc.com/en_GB/external",
         "search_url_template": "https://mycareer.hsbc.com/en_GB/external?keyword={query}",
@@ -158,7 +138,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "bank_of_america",
         "name": "Bank of America",
-        "category": "Banque Anglophone",
+        "category": "Banque d'Investissement",
         "region": "US / Global",
         "career_portal_url": "https://campus.bankofamerica.com/",
         "search_url_template": "https://campus.bankofamerica.com/search-jobs.html?k={query}",
@@ -167,7 +147,7 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "citi",
         "name": "Citi",
-        "category": "Banque Anglophone",
+        "category": "Banque d'Investissement",
         "region": "US / Global",
         "career_portal_url": "https://jobs.citi.com/",
         "search_url_template": "https://jobs.citi.com/search-jobs/{query}",
@@ -176,49 +156,291 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
     {
         "id": "jefferies",
         "name": "Jefferies",
-        "category": "Banque Anglophone",
+        "category": "Banque d'Investissement",
         "region": "US / Europe",
         "career_portal_url": "https://jefferies.wd5.myworkdayjobs.com/Jefferies_Careers",
         "search_url_template": "https://jefferies.wd5.myworkdayjobs.com/Jefferies_Careers?q={query}",
         "specialties": ["Equities", "Fixed Income", "Electronic Trading"]
     },
 
-    # --- Hedge Funds & Quantitative Prop Trading ---
+    # --- 2. M&A & BOUTIQUES DE CONSEIL FINANCIER ---
+    {
+        "id": "rothschild_co",
+        "name": "Rothschild & Co",
+        "category": "M&A & Conseil Financier",
+        "region": "France / UK / Global",
+        "career_portal_url": "https://www.rothschildandco.com/en/careers/opportunities/",
+        "search_url_template": "https://www.rothschildandco.com/en/careers/opportunities/?search={query}",
+        "specialties": ["Global Advisory M&A", "Sovereign Advisory", "Merchant Banking", "Produits Structurés"]
+    },
+    {
+        "id": "lazard",
+        "name": "Lazard Frères",
+        "category": "M&A & Conseil Financier",
+        "region": "France / US / Global",
+        "career_portal_url": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers",
+        "search_url_template": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers?q={query}",
+        "specialties": ["Financial Advisory M&A", "Restructuring", "Lazard Asset Management"]
+    },
+    {
+        "id": "evercore",
+        "name": "Evercore",
+        "category": "M&A & Conseil Financier",
+        "region": "US / UK / Europe",
+        "career_portal_url": "https://www.evercore.com/careers/",
+        "search_url_template": "https://www.evercore.com/careers/?search={query}",
+        "specialties": ["Strategic Advisory M&A", "Equities & Research", "Restructuring"]
+    },
+    {
+        "id": "centerview",
+        "name": "Centerview Partners",
+        "category": "M&A & Conseil Financier",
+        "region": "US / UK / France",
+        "career_portal_url": "https://www.centerviewpartners.com/careers",
+        "search_url_template": "https://www.centerviewpartners.com/careers?q={query}",
+        "specialties": ["Elite M&A Advisory", "Restructuring", "Corporate Valuation"]
+    },
+    {
+        "id": "messier_associes",
+        "name": "Messier & Associés",
+        "category": "M&A & Conseil Financier",
+        "region": "France / Europe",
+        "career_portal_url": "https://www.messier-associes.com/carrieres/",
+        "search_url_template": "https://www.messier-associes.com/carrieres/?s={query}",
+        "specialties": ["M&A Large & Mid Cap", "Conseil Stratégique", "LBO"]
+    },
+    {
+        "id": "houlihan_lokey",
+        "name": "Houlihan Lokey",
+        "category": "M&A & Conseil Financier",
+        "region": "US / Europe / Global",
+        "career_portal_url": "https://hl.com/careers/",
+        "search_url_template": "https://hl.com/careers/?search={query}",
+        "specialties": ["Financial Restructuring", "Corporate Finance M&A", "Financial and Valuation Advisory"]
+    },
+
+    # --- 3. PRIVATE EQUITY & ASSET MANAGEMENT ---
+    {
+        "id": "blackrock",
+        "name": "BlackRock",
+        "category": "Private Equity & AM",
+        "region": "US / Europe / Global",
+        "career_portal_url": "https://careers.blackrock.com/",
+        "search_url_template": "https://careers.blackrock.com/search-jobs/{query}",
+        "specialties": ["Quantitative Investing", "Aladdin Platform", "iShares ETF", "Fixed Income"]
+    },
+    {
+        "id": "amundi",
+        "name": "Amundi Asset Management",
+        "category": "Private Equity & AM",
+        "region": "France / Europe / Global",
+        "career_portal_url": "https://about.amundi.com/carrieres",
+        "search_url_template": "https://about.amundi.com/carrieres/offres?keyword={query}",
+        "specialties": ["Gestion Passive & ETF", "Multi-Asset", "Recherche Économique", "ESG"]
+    },
+    {
+        "id": "ardian",
+        "name": "Ardian",
+        "category": "Private Equity & AM",
+        "region": "France / Europe / US",
+        "career_portal_url": "https://www.ardian.com/careers",
+        "search_url_template": "https://www.ardian.com/careers?q={query}",
+        "specialties": ["Direct LBO", "Private Debt", "Infrastructure", "Fonds de Fonds"]
+    },
+    {
+        "id": "eurazeo",
+        "name": "Eurazeo",
+        "category": "Private Equity & AM",
+        "region": "France / Europe / US",
+        "career_portal_url": "https://www.eurazeo.com/fr/carrieres",
+        "search_url_template": "https://www.eurazeo.com/fr/carrieres?query={query}",
+        "specialties": ["Mid-Large Buyout", "Growth Equity", "Private Debt", "Real Assets"]
+    },
+    {
+        "id": "eqt",
+        "name": "EQT Partners",
+        "category": "Private Equity & AM",
+        "region": "Suède / Europe / Global",
+        "career_portal_url": "https://eqtgroup.com/careers/",
+        "search_url_template": "https://eqtgroup.com/careers/?s={query}",
+        "specialties": ["Private Capital", "Infrastructure", "Real Estate", "Venture"]
+    },
+    {
+        "id": "blackstone",
+        "name": "Blackstone",
+        "category": "Private Equity & AM",
+        "region": "US / UK / Global",
+        "career_portal_url": "https://www.blackstone.com/careers/",
+        "search_url_template": "https://www.blackstone.com/careers/?search={query}",
+        "specialties": ["Private Equity LBO", "Real Estate", "Credit & Insurance", "Hedge Fund Solutions"]
+    },
+
+    # --- 4. HEDGE FUNDS & QUANT PROP TRADING ---
+    {
+        "id": "citadel",
+        "name": "Citadel & Citadel Securities",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "US / UK / Global",
+        "career_portal_url": "https://www.citadel.com/careers/",
+        "search_url_template": "https://www.citadel.com/careers/open-opportunities/?keyword={query}",
+        "specialties": ["Quantitative Research", "Equities Market Making", "Global Fixed Income", "Commodities"]
+    },
+    {
+        "id": "jane_street",
+        "name": "Jane Street",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "US / UK / Europe",
+        "career_portal_url": "https://www.janestreet.com/join-jane-street/open-roles/",
+        "search_url_template": "https://www.janestreet.com/join-jane-street/open-roles/?search={query}",
+        "specialties": ["Quantitative Trading", "Software Engineering OCaml/Python", "ETF Market Making"]
+    },
+    {
+        "id": "point72",
+        "name": "Point72 Asset Management",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "US / UK / Global",
+        "career_portal_url": "https://careers.point72.com/",
+        "search_url_template": "https://careers.point72.com/search-jobs/{query}",
+        "specialties": ["Long/Short Equity", "Cubist Systematic Strategies", "Macro & Discretionary"]
+    },
+    {
+        "id": "millennium",
+        "name": "Millennium Management",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "US / UK / Global",
+        "career_portal_url": "https://www.mlp.com/careers/",
+        "search_url_template": "https://www.mlp.com/careers/?search={query}",
+        "specialties": ["Multi-Strategy Hedge Fund", "Quant Strategies", "Volatility Arbitrage"]
+    },
     {
         "id": "brevan_howard",
         "name": "Brevan Howard",
-        "category": "Hedge Fund",
+        "category": "Hedge Fund & Prop Trading",
         "region": "UK / US / Global",
         "career_portal_url": "https://www.brevanhoward.com/careers/",
         "search_url_template": "https://www.brevanhoward.com/careers/?search={query}",
-        "specialties": ["Global Macro", "Systematic Trading", "Crypto & Digital Assets"]
+        "specialties": ["Global Macro", "Systematic Trading", "Fixed Income & FX"]
     },
     {
         "id": "balyasny_am",
         "name": "Balyasny Asset Management",
-        "category": "Hedge Fund",
+        "category": "Hedge Fund & Prop Trading",
         "region": "US / UK / Global",
         "career_portal_url": "https://www.bamfunds.com/careers",
         "search_url_template": "https://www.bamfunds.com/careers?query={query}",
         "specialties": ["Multi-Strategy", "Macro & Commodities", "Quantitative Research"]
     },
     {
-        "id": "maven_securities",
-        "name": "Maven Securities",
-        "category": "Hedge Fund / Prop Trading",
-        "region": "UK / Europe",
-        "career_portal_url": "https://mavensecurities.com/careers/",
-        "search_url_template": "https://mavensecurities.com/careers/?s={query}",
-        "specialties": ["Quant Trading", "Derivatives Market Making", "Systematic Alpha"]
+        "id": "optiver",
+        "name": "Optiver",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "Pays-Bas / Europe / US",
+        "career_portal_url": "https://optiver.com/working-at-optiver/career-opportunities/",
+        "search_url_template": "https://optiver.com/working-at-optiver/career-opportunities/?search={query}",
+        "specialties": ["Derivatives Market Making", "Options Volatility", "Low-Latency C++"]
     },
     {
-        "id": "talos",
-        "name": "Talos",
-        "category": "FinTech Quantitative",
-        "region": "US / Europe",
-        "career_portal_url": "https://talos.com/careers/",
-        "search_url_template": "https://talos.com/careers/?search={query}",
-        "specialties": ["Institutional Trading Infrastructure", "Execution Algorithms", "Crypto"]
+        "id": "flow_traders",
+        "name": "Flow Traders",
+        "category": "Hedge Fund & Prop Trading",
+        "region": "Pays-Bas / Europe / US",
+        "career_portal_url": "https://www.flowtraders.com/careers",
+        "search_url_template": "https://www.flowtraders.com/careers/jobs?search={query}",
+        "specialties": ["ETP & Bond Market Making", "Digital Assets", "Algorithmic Arbitrage"]
+    },
+
+    # --- 5. AUDIT & TRANSACTION SERVICES (BIG 4 & MAZARS) ---
+    {
+        "id": "pwc",
+        "name": "PwC (PricewaterhouseCoopers)",
+        "category": "Audit & Transaction Services",
+        "region": "France / Global",
+        "career_portal_url": "https://carrieres.pwc.fr/",
+        "search_url_template": "https://carrieres.pwc.fr/fr/offres-d-emploi?keyword={query}",
+        "specialties": ["Transaction Services (TS)", "Financial Due Diligence", "Audit Financier Marchés", "Deals Valuation"]
+    },
+    {
+        "id": "deloitte",
+        "name": "Deloitte",
+        "category": "Audit & Transaction Services",
+        "region": "France / Global",
+        "career_portal_url": "https://deloitte.recrutement.net/",
+        "search_url_template": "https://deloitte.recrutement.net/recherche-offres?keyword={query}",
+        "specialties": ["Financial Advisory (FDD)", "Audit Bancaire & Asset Management", "Forensic", "Restructuring"]
+    },
+    {
+        "id": "ey",
+        "name": "EY (Ernst & Young)",
+        "category": "Audit & Transaction Services",
+        "region": "France / Global",
+        "career_portal_url": "https://ey.taleo.net/careersection/ey_careers/jobsearch.ftl",
+        "search_url_template": "https://ey.taleo.net/careersection/ey_careers/jobsearch.ftl?keyword={query}",
+        "specialties": ["Strategy and Transactions (SaT)", "Valuation & Business Modeling", "Audit FSO (Financial Services)"]
+    },
+    {
+        "id": "kpmg",
+        "name": "KPMG",
+        "category": "Audit & Transaction Services",
+        "region": "France / Global",
+        "career_portal_url": "https://carrieres.kpmg.fr/",
+        "search_url_template": "https://carrieres.kpmg.fr/nos-offres?query={query}",
+        "specialties": ["Deal Advisory (TS/M&A)", "Financial Services Audit", "Corporate Finance", "Restructuring"]
+    },
+    {
+        "id": "mazars",
+        "name": "Forvis Mazars",
+        "category": "Audit & Transaction Services",
+        "region": "France / Global",
+        "career_portal_url": "https://carrieres.mazars.fr/",
+        "search_url_template": "https://carrieres.mazars.fr/offres-emploi?keyword={query}",
+        "specialties": ["Audit Grands Comptes & CIB", "Transaction Services", "Modélisation Financière", "Actuariat"]
+    },
+
+    # --- 6. CONSEIL EN STRATÉGIE & MANAGEMENT ---
+    {
+        "id": "mckinsey",
+        "name": "McKinsey & Company",
+        "category": "Conseil en Stratégie",
+        "region": "France / Global",
+        "career_portal_url": "https://www.mckinsey.com/careers/search-jobs",
+        "search_url_template": "https://www.mckinsey.com/careers/search-jobs?query={query}",
+        "specialties": ["Strategy Consulting", "Financial Institutions Practice", "QuantumBlack AI", "Corporate Finance"]
+    },
+    {
+        "id": "bcg",
+        "name": "The Boston Consulting Group (BCG)",
+        "category": "Conseil en Stratégie",
+        "region": "France / Global",
+        "career_portal_url": "https://careers.bcg.com/",
+        "search_url_template": "https://careers.bcg.com/search-jobs/{query}",
+        "specialties": ["Corporate Development", "Financial Institutions Strategy", "BCG GAMMA Data Science"]
+    },
+    {
+        "id": "bain",
+        "name": "Bain & Company",
+        "category": "Conseil en Stratégie",
+        "region": "France / Global",
+        "career_portal_url": "https://www.bain.com/careers/",
+        "search_url_template": "https://www.bain.com/careers/find-a-role/?query={query}",
+        "specialties": ["Private Equity Due Diligence", "Financial Services Strategy", "Mergers & Acquisitions"]
+    },
+    {
+        "id": "oliver_wyman",
+        "name": "Oliver Wyman",
+        "category": "Conseil en Stratégie",
+        "region": "France / Global",
+        "career_portal_url": "https://www.oliverwyman.com/careers.html",
+        "search_url_template": "https://www.oliverwyman.com/careers.html?search={query}",
+        "specialties": ["Financial Services Leader", "Corporate & Institutional Banking", "Quantitative Risk", "Actuarial"]
+    },
+    {
+        "id": "roland_berger",
+        "name": "Roland Berger",
+        "category": "Conseil en Stratégie",
+        "region": "France / Europe / Global",
+        "career_portal_url": "https://www.rolandberger.com/fr/Join.html",
+        "search_url_template": "https://www.rolandberger.com/fr/Join.html?query={query}",
+        "specialties": ["Restructuring", "Financial Services Advisory", "Strategic M&A Support"]
     }
 ]
 

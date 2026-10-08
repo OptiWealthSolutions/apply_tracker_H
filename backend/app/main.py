@@ -21,7 +21,8 @@ from .schemas import (
     RecommendationResponse,
     ApplyPitchRequest, ApplyPitchResponse,
     BankDirectoryItem, LiveBankSearchRequest, LiveBankSearchResultItem,
-    CVInfoResponse, DeskInterviewPrepResponse, ATSFitBreakdown
+    CVInfoResponse, DeskInterviewPrepResponse, ATSFitBreakdown,
+    CVAuditRequest, CoverLetterAuditRequest
 )
 from .scraper import (
     sync_and_verify_real_jobs,
@@ -37,6 +38,7 @@ from .recommender import compute_knn_recommendations
 from .email_generator import generate_application_pitch
 from .interview_prep import get_interview_prep_for_desk
 from .ats_analyzer import analyze_ats_fit
+from .cv_quality_analyzer import audit_cv_content, audit_cover_letter, CVAuditResponse, CoverLetterAuditResponse
 from .seed_data import seed_database
 
 # Create DB schema tables
@@ -491,6 +493,7 @@ def get_user_profile(db: Session = Depends(get_db)):
         phone=profile.phone,
         school=profile.school,
         degree_level=profile.degree_level,
+        target_domains=parse_field(getattr(profile, "target_domains", None)),
         target_roles=parse_field(profile.target_roles),
         target_locations=parse_field(profile.target_locations),
         target_asset_classes=parse_field(profile.target_asset_classes),
@@ -513,7 +516,7 @@ def update_user_profile(profile_in: UserProfileUpdate, db: Session = Depends(get
 
     update_dict = profile_in.model_dump(exclude_unset=True)
     for key, val in update_dict.items():
-        if key in ["target_roles", "target_locations", "target_asset_classes", "technical_skills"]:
+        if key in ["target_domains", "target_roles", "target_locations", "target_asset_classes", "technical_skills"]:
             setattr(profile, key, json.dumps(val) if isinstance(val, list) else str(val))
         else:
             setattr(profile, key, val)
@@ -787,5 +790,51 @@ def get_offer_ats_analysis(offer_id: int, db: Session = Depends(get_db)):
         description=offer.description,
         requirements=offer.requirements or ""
     )
+
+
+# ==========================================================
+# CV & COVER LETTER QUALITY / KEYWORD RANKING AUDIT
+# ==========================================================
+@app.post("/api/cv/audit", response_model=CVAuditResponse)
+def audit_cv_custom(req: CVAuditRequest):
+    """Audits arbitrary or pasted CV text against institutional quality criteria."""
+    return audit_cv_content(req.cv_text or "")
+
+
+@app.get("/api/cv/audit/current", response_model=CVAuditResponse)
+def audit_current_cv(db: Session = Depends(get_db)):
+    """
+    Audits the currently hosted CV document in SQLite database,
+    extracting text or analyzing the candidate profile.
+    """
+    cv = db.query(CVDocument).filter(CVDocument.is_active == True).order_by(desc(CVDocument.uploaded_at)).first()
+    extracted_text = ""
+    if cv and cv.file_bytes:
+        try:
+            import io
+            import pypdf
+            reader = pypdf.PdfReader(io.BytesIO(cv.file_bytes))
+            for page in reader.pages:
+                txt = page.extract_text()
+                if txt:
+                    extracted_text += "\n" + txt
+        except Exception:
+            extracted_text = ""
+
+    return audit_cv_content(extracted_text)
+
+
+@app.post("/api/cover-letter/audit", response_model=CoverLetterAuditResponse)
+def audit_cover_letter_endpoint(req: CoverLetterAuditRequest):
+    """
+    Audits cover letter or application pitch for personalization,
+    Google XYZ impact, hook strength, conciseness, and call-to-action.
+    """
+    return audit_cover_letter(
+        cover_letter_text=req.cover_letter_text,
+        target_company=req.target_company or "",
+        target_role=req.target_role or ""
+    )
+
 
 

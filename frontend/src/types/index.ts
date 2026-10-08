@@ -65,6 +65,7 @@ export interface UserProfile {
   phone?: string;
   school: string;
   degree_level: string;
+  target_domains?: string[];
   target_roles: string[];
   target_locations: string[];
   target_asset_classes: string[];
@@ -76,6 +77,57 @@ export interface UserProfile {
   serendipity_exploration_weight: number;
   updated_at?: string;
 }
+
+export interface KeywordItem {
+  keyword: string;
+  category: string;
+  count: number;
+  density_percent: number;
+  relevance_score: number;
+  importance: string;
+}
+
+export interface BulletAuditItem {
+  original_text: string;
+  is_quantified: boolean;
+  detected_metrics: string[];
+  has_strong_verb: boolean;
+  detected_verb?: string;
+  xyz_score: number;
+  suggestion?: string;
+}
+
+export interface CVAuditResponse {
+  overall_score: number;
+  letter_grade: string;
+  executive_summary: string;
+  category_scores: Record<string, number>;
+  top_ranked_keywords: KeywordItem[];
+  missing_high_yield_keywords: Array<{ keyword: string; category: string; impact: string }>;
+  quantification_rate_percent: number;
+  strong_verbs_rate_percent: number;
+  total_words: number;
+  bullet_audits: BulletAuditItem[];
+  strengths: string[];
+  critical_improvements: string[];
+  domain_fit: Record<string, number>;
+}
+
+export interface CoverLetterAuditResponse {
+  overall_score: number;
+  letter_grade: string;
+  word_count: number;
+  personalization_score: number;
+  hook_strength_score: number;
+  conciseness_score: number;
+  call_to_action_score: number;
+  detected_company?: string;
+  detected_role?: string;
+  strengths: string[];
+  warnings: string[];
+  recommendations: string[];
+}
+
 
 export interface RecommendationItem {
   offer: JobOffer;
