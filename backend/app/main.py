@@ -184,7 +184,7 @@ def get_job_offers(
     location: Optional[str] = None,
     only_favorites: bool = False,
     only_verified: bool = True,
-    limit: int = 100,
+    limit: int = 500,
     db: Session = Depends(get_db)
 ):
     q = db.query(JobOffer)
