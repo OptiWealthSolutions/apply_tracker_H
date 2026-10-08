@@ -7,6 +7,7 @@ import {
   Sliders,
   Database,
   TrendingUp,
+  Building2,
 } from 'lucide-react';
 import type { UserProfile } from '../types';
 
@@ -34,6 +35,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: applicationsCount,
     },
     {
+      id: 'bank-search',
+      label: 'Portails Banques & Direct',
+      subtext: 'BNP, SG, JPM, Barclays...',
+      icon: Building2,
+      highlight: true,
+    },
+    {
       id: 'scraper',
       label: 'Scraper de Marché',
       subtext: 'Google Jobs & Web',
@@ -44,7 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Conseiller KNN',
       subtext: 'Plus Proche Voisin & Pépites',
       icon: Compass,
-      highlight: true,
     },
     {
       id: 'analytics',

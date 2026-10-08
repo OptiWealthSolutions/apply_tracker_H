@@ -24,6 +24,9 @@ export interface JobOffer {
   salary_monthly?: number;
   source: string;
   date_posted?: string;
+  start_date?: string;
+  end_date?: string;
+  duration_months?: string;
   scraped_at?: string;
   is_favorite: boolean;
   is_applied: boolean;
@@ -116,3 +119,46 @@ export interface SyncResponse {
   new_added: number;
   timestamp: string;
 }
+
+export interface BankDirectoryItem {
+  id: string;
+  name: string;
+  category: string;
+  region: string;
+  career_portal_url: string;
+  search_url_template: string;
+  specialties: string[];
+}
+
+export interface LiveBankSearchRequest {
+  keyword: string;
+  bank_ids?: string[];
+  location?: string;
+  start_period?: string;
+}
+
+export interface LiveBankSearchResultItem {
+  title: string;
+  company: string;
+  location: string;
+  desk: string;
+  asset_class: string;
+  contract_type: string;
+  description: string;
+  requirements?: string;
+  url: string;
+  bank_career_portal_url?: string;
+  bank_search_url?: string;
+  salary_monthly: number;
+  source: string;
+  date_posted: string;
+  start_date: string;
+  end_date: string;
+  duration_months: string;
+  tags: string;
+  bank_id: string;
+  bank_category: string;
+  url_status: number;
+  is_verified: boolean;
+}
+

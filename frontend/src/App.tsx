@@ -8,6 +8,7 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { ApplicationModal } from './components/ApplicationModal';
 import { PreferencesModal } from './components/PreferencesModal';
 import { ApplyActionModal } from './components/ApplyActionModal';
+import { BankCareerSearchView } from './components/BankCareerSearchView';
 import type {
   Application,
   JobOffer,
@@ -282,6 +283,15 @@ export function App() {
       (a.follow_up_date && new Date(a.follow_up_date) <= new Date())
   ).length;
 
+  const handleOfferImported = (newOffer: JobOffer) => {
+    setOffers((prev) => {
+      const exists = prev.some((o) => o.id === newOffer.id || o.url === newOffer.url);
+      if (exists) return prev;
+      return [newOffer, ...prev];
+    });
+    setSyncBanner(`Offre "${newOffer.title}" (${newOffer.company}) importée avec succès dans vos offres.`);
+  };
+
   const getHeaderMeta = () => {
     switch (currentTab) {
       case 'tracker':
@@ -289,6 +299,12 @@ export function App() {
           title: 'Tableau de Suivi des Candidatures',
           subtitle:
             'Gérez votre pipeline de stages en finance de marché avec statuts temps réel et relances.',
+        };
+      case 'bank-search':
+        return {
+          title: 'Portails Carrières Directs des Banques & Recherche Live',
+          subtitle:
+            'Interrogez en direct les plateformes officielles des banques françaises et anglophones avec extraction des dates de stage.',
         };
       case 'scraper':
         return {
@@ -370,6 +386,13 @@ export function App() {
                 onDirectApply={handleDirectApplyFromApplication}
                 onNewApplication={handleNewApplication}
                 onExportCsv={handleExportCsv}
+              />
+            )}
+
+            {currentTab === 'bank-search' && (
+              <BankCareerSearchView
+                onDirectApply={handleDirectApplyFromOffer}
+                onOfferImported={handleOfferImported}
               />
             )}
 

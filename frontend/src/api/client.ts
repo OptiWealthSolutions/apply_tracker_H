@@ -7,6 +7,9 @@ import type {
   AnalyticsData,
   ApplicationStatus,
   SyncResponse,
+  BankDirectoryItem,
+  LiveBankSearchRequest,
+  LiveBankSearchResultItem,
 } from '../types';
 
 const API_BASE = '/api';
@@ -30,11 +33,23 @@ export const api = {
   },
 
   // Job Offers
-  async getOffers(params?: { query?: string; desk?: string; location?: string; only_favorites?: boolean; only_verified?: boolean }): Promise<JobOffer[]> {
+  async getOffers(params?: {
+    query?: string;
+    desk?: string;
+    location?: string;
+    company?: string;
+    start_period?: string;
+    duration?: string;
+    only_favorites?: boolean;
+    only_verified?: boolean;
+  }): Promise<JobOffer[]> {
     const queryParams = new URLSearchParams();
     if (params?.query) queryParams.append('query', params.query);
     if (params?.desk && params.desk !== 'Tous') queryParams.append('desk', params.desk);
     if (params?.location && params.location !== 'Toutes') queryParams.append('location', params.location);
+    if (params?.company && params.company !== 'Toutes') queryParams.append('company', params.company);
+    if (params?.start_period && params.start_period !== 'Toutes') queryParams.append('start_period', params.start_period);
+    if (params?.duration && params.duration !== 'Toutes') queryParams.append('duration', params.duration);
     if (params?.only_favorites) queryParams.append('only_favorites', 'true');
     if (params?.only_verified !== undefined) queryParams.append('only_verified', params.only_verified ? 'true' : 'false');
 
@@ -155,4 +170,32 @@ export const api = {
     if (!res.ok) throw new Error('Erreur lors de la récupération des analytics');
     return res.json();
   },
+
+  // Bank Career Portals & Live Queries
+  async getBankDirectory(): Promise<BankDirectoryItem[]> {
+    const res = await fetch(`${API_BASE}/banks/directory`);
+    if (!res.ok) throw new Error('Erreur lors de la récupération du répertoire bancaire');
+    return res.json();
+  },
+
+  async liveBankSearch(req: LiveBankSearchRequest): Promise<LiveBankSearchResultItem[]> {
+    const res = await fetch(`${API_BASE}/banks/live-search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    if (!res.ok) throw new Error('Erreur lors de la recherche en direct sur les portails bancaires');
+    return res.json();
+  },
+
+  async importBankOffer(offer: LiveBankSearchResultItem): Promise<JobOffer> {
+    const res = await fetch(`${API_BASE}/banks/import-offer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(offer),
+    });
+    if (!res.ok) throw new Error("Erreur lors de l'import de l'offre bancaire");
+    return res.json();
+  },
 };
+

@@ -20,6 +20,9 @@ class JobOfferBase(BaseModel):
     salary_monthly: Optional[int] = 2500
     source: str = "Scraper"
     date_posted: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    duration_months: Optional[str] = "6 mois"
     tags: Optional[str] = None
     direct_apply_email: Optional[str] = None
 
@@ -201,3 +204,47 @@ class ApplyPitchResponse(BaseModel):
     quick_email_pitch: str
     mailto_url: str
     recommended_portfolio_bullets: List[str]
+
+
+# --- BANK DIRECTORY & LIVE SEARCH SCHEMAS ---
+class BankDirectoryItem(BaseModel):
+    id: str
+    name: str
+    category: str
+    region: str
+    career_portal_url: str
+    search_url_template: str
+    specialties: List[str]
+
+
+class LiveBankSearchRequest(BaseModel):
+    keyword: str
+    bank_ids: Optional[List[str]] = None
+    location: str = "Paris"
+    start_period: Optional[str] = None
+
+
+class LiveBankSearchResultItem(BaseModel):
+    title: str
+    company: str
+    location: str
+    desk: str
+    asset_class: str
+    contract_type: str
+    description: str
+    requirements: Optional[str] = None
+    url: str
+    bank_career_portal_url: Optional[str] = None
+    bank_search_url: Optional[str] = None
+    salary_monthly: int
+    source: str
+    date_posted: str
+    start_date: str
+    end_date: str
+    duration_months: str
+    tags: str
+    bank_id: str
+    bank_category: str
+    url_status: int = 200
+    is_verified: bool = True
+

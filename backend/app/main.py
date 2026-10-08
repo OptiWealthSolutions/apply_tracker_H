@@ -19,7 +19,8 @@ from .schemas import (
     ScrapeRequest, ScrapeUrlRequest,
     SyncResponse,
     RecommendationResponse,
-    ApplyPitchRequest, ApplyPitchResponse
+    ApplyPitchRequest, ApplyPitchResponse,
+    BankDirectoryItem, LiveBankSearchRequest, LiveBankSearchResultItem
 )
 from .scraper import (
     sync_and_verify_real_jobs,
@@ -29,6 +30,8 @@ from .scraper import (
     verify_job_url,
     clean_tracking_url
 )
+from .bank_career_crawler import get_bank_directory, search_bank_careers_live
+from .date_extractor import extract_internship_dates
 from .recommender import compute_knn_recommendations
 from .email_generator import generate_application_pitch
 from .seed_data import seed_database
@@ -182,6 +185,9 @@ def get_job_offers(
     query: Optional[str] = None,
     desk: Optional[str] = None,
     location: Optional[str] = None,
+    company: Optional[str] = None,
+    start_period: Optional[str] = None,
+    duration: Optional[str] = None,
     only_favorites: bool = False,
     only_verified: bool = True,
     limit: int = 500,
@@ -202,6 +208,12 @@ def get_job_offers(
         q = q.filter(JobOffer.desk == desk)
     if location and location != "Toutes":
         q = q.filter(JobOffer.location.ilike(f"%{location}%"))
+    if company and company != "Toutes":
+        q = q.filter(JobOffer.company.ilike(f"%{company}%"))
+    if start_period and start_period != "Toutes":
+        q = q.filter(JobOffer.start_date.ilike(f"%{start_period}%"))
+    if duration and duration != "Toutes":
+        q = q.filter(JobOffer.duration_months.ilike(f"%{duration}%"))
     if only_favorites:
         q = q.filter(JobOffer.is_favorite == True)
 
@@ -577,3 +589,77 @@ def get_analytics(db: Session = Depends(get_db)):
         "action_required_count": status_counts["follow_up_needed"],
         "active_interviews_count": status_counts["interviewing"]
     }
+
+
+# ==========================================================
+# BANK CAREER PORTALS & LIVE SEARCH ENDPOINTS
+# ==========================================================
+@app.get("/api/banks/directory", response_model=List[BankDirectoryItem])
+def get_bank_directory_endpoint():
+    """Returns official directory of French & Anglophone investment banks, hedge funds and AM portals."""
+    return get_bank_directory()
+
+
+@app.post("/api/banks/live-search", response_model=List[LiveBankSearchResultItem])
+async def live_bank_search_endpoint(req: LiveBankSearchRequest):
+    """
+    Executes live simultaneous queries across selected bank portals,
+    extracts start and end dates, verifies HTTP 200 links in real time,
+    and returns verified active postings ready to be tracked.
+    """
+    results = await search_bank_careers_live(
+        keyword=req.keyword,
+        bank_ids=req.bank_ids,
+        location=req.location,
+        start_period=req.start_period
+    )
+    return results
+
+
+@app.post("/api/banks/import-offer", response_model=JobOfferResponse, status_code=status.HTTP_201_CREATED)
+def import_bank_offer_endpoint(offer_data: LiveBankSearchResultItem, db: Session = Depends(get_db)):
+    """Imports a live discovered bank offer into the job tracker database."""
+    clean_url = clean_tracking_url(offer_data.url)
+    existing = db.query(JobOffer).filter(JobOffer.url == clean_url).first()
+    if existing:
+        existing.title = offer_data.title
+        existing.company = offer_data.company
+        existing.location = offer_data.location
+        existing.desk = offer_data.desk
+        existing.asset_class = offer_data.asset_class
+        existing.start_date = offer_data.start_date
+        existing.end_date = offer_data.end_date
+        existing.duration_months = offer_data.duration_months
+        existing.url_status = offer_data.url_status
+        existing.is_verified = True
+        existing.last_verified_at = datetime.utcnow()
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    new_offer = JobOffer(
+        title=offer_data.title,
+        company=offer_data.company,
+        location=offer_data.location,
+        desk=offer_data.desk,
+        asset_class=offer_data.asset_class,
+        contract_type=offer_data.contract_type,
+        description=offer_data.description,
+        requirements=offer_data.requirements,
+        url=clean_url,
+        url_status=offer_data.url_status,
+        is_verified=True,
+        last_verified_at=datetime.utcnow(),
+        salary_monthly=offer_data.salary_monthly,
+        source=offer_data.source,
+        date_posted=offer_data.date_posted,
+        start_date=offer_data.start_date,
+        end_date=offer_data.end_date,
+        duration_months=offer_data.duration_months,
+        tags=offer_data.tags
+    )
+    db.add(new_offer)
+    db.commit()
+    db.refresh(new_offer)
+    return new_offer
+

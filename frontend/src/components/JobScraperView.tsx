@@ -13,6 +13,8 @@ import {
   Filter,
   RefreshCw,
   ShieldCheck,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 import type { JobOffer } from '../types';
 
@@ -54,6 +56,9 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlLoading, setUrlLoading] = useState(false);
   const [deskFilter, setDeskFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
+  const [startPeriodFilter, setStartPeriodFilter] = useState('all');
+  const [durationFilter, setDurationFilter] = useState('all');
   const [onlyVerified, setOnlyVerified] = useState(true);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -78,7 +83,10 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
   const filteredOffers = offers.filter((o) => {
     const matchesDesk = deskFilter === 'all' || o.desk === deskFilter;
     const matchesVerified = !onlyVerified || (o.is_verified && o.url_status === 200);
-    return matchesDesk && matchesVerified;
+    const matchesLoc = locationFilter === 'all' || o.location.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesStart = startPeriodFilter === 'all' || (o.start_date && o.start_date.toLowerCase().includes(startPeriodFilter.toLowerCase()));
+    const matchesDur = durationFilter === 'all' || (o.duration_months && o.duration_months.toLowerCase().includes(durationFilter.toLowerCase()));
+    return matchesDesk && matchesVerified && matchesLoc && matchesStart && matchesDur;
   });
 
   const uniqueDesks = Array.from(new Set(offers.map((o) => o.desk))).filter(Boolean);
@@ -221,7 +229,7 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2">
             <label className="flex items-center space-x-1.5 text-xs text-slate-600 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -229,8 +237,51 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                 onChange={(e) => setOnlyVerified(e.target.checked)}
                 className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
-              <span>Liens 200 OK uniquement</span>
+              <span>Liens 200 OK</span>
             </label>
+
+            {/* Filter by Location / Hub */}
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">Toutes les places</option>
+              <option value="Paris">Paris & Île-de-France</option>
+              <option value="London">Londres</option>
+              <option value="New York">New York</option>
+              <option value="Luxembourg">Luxembourg</option>
+              <option value="Marseille">Marseille</option>
+              <option value="Milan">Milan</option>
+              <option value="Geneva">Genève</option>
+            </select>
+
+            {/* Filter by Start Period */}
+            <select
+              value={startPeriodFilter}
+              onChange={(e) => setStartPeriodFilter(e.target.value)}
+              className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">Toutes les dates début</option>
+              <option value="Janvier 2027">Janvier 2027</option>
+              <option value="Mars 2027">Mars 2027</option>
+              <option value="Juin 2027">Juin 2027 (Summer / Off-cycle)</option>
+              <option value="Juillet 2027">Juillet 2027</option>
+              <option value="Septembre 2027">Septembre 2027</option>
+              <option value="Immédiat">Immédiat / Dès que possible</option>
+            </select>
+
+            {/* Filter by Duration */}
+            <select
+              value={durationFilter}
+              onChange={(e) => setDurationFilter(e.target.value)}
+              className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">Toutes les durées</option>
+              <option value="6 mois">6 mois</option>
+              <option value="semaine">Summer (10 semaines)</option>
+              <option value="4-6">PFE (4-6 mois)</option>
+            </select>
 
             {uniqueDesks.length > 0 && (
               <div className="flex items-center space-x-1.5">
@@ -320,6 +371,24 @@ export const JobScraperView: React.FC<JobScraperViewProps> = ({
                         {offer.salary_monthly} €/mois
                       </span>
                     )}
+                  </div>
+
+                  {/* Dates de Stage */}
+                  <div className="mt-2.5 p-2 rounded-lg bg-slate-50 border border-slate-200/80 grid grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Début prévu :</span>
+                      <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                        {offer.start_date || 'Juin 2027'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block font-medium">Fin / Durée :</span>
+                      <span className="font-bold text-slate-800 flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                        {offer.end_date || 'Décembre 2027'} ({offer.duration_months || '6 mois'})
+                      </span>
+                    </div>
                   </div>
 
                   {/* Description snippet */}

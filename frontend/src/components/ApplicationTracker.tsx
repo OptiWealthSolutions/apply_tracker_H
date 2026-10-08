@@ -17,6 +17,7 @@ import {
   Mail,
   Building,
   Download,
+  Calendar,
 } from 'lucide-react';
 import type { Application, ApplicationStatus } from '../types';
 
@@ -236,6 +237,7 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
                   <th className="py-3.5 px-4">Établissement & Rôle</th>
                   <th className="py-3.5 px-4">Desk / Marché</th>
                   <th className="py-3.5 px-4">Lieu</th>
+                  <th className="py-3.5 px-4">Période Stage</th>
                   <th className="py-3.5 px-4">Statut</th>
                   <th className="py-3.5 px-4">Date Envoi</th>
                   <th className="py-3.5 px-4">Relance / Échéance</th>
@@ -284,6 +286,19 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
 
                       {/* Location */}
                       <td className="py-3.5 px-4 text-slate-600">{app.location || 'Paris'}</td>
+
+                      {/* Période Stage */}
+                      <td className="py-3.5 px-4 font-mono-numbers text-slate-700">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-800 text-[11px] flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-blue-600" />
+                            {app.offer?.start_date || 'Juin 2027'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            → {app.offer?.end_date || 'Déc. 2027'} ({app.offer?.duration_months || '6 mois'})
+                          </span>
+                        </div>
+                      </td>
 
                       {/* Status Selector */}
                       <td className="py-3.5 px-4">
