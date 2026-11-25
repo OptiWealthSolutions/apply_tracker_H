@@ -217,7 +217,7 @@ export const SuggestionsView: React.FC<SuggestionsViewProps> = ({
             type="button"
             onClick={() => setOnlyDirectEmail(!onlyDirectEmail)}
             className={`sq-btn py-1 px-2.5 text-[10px] ${
-              onlyDirectEmail ? 'bg-[#16a34a] text-white border-[#16a34a]' : ''
+              onlyDirectEmail ? 'bg-[#1f5fbf] text-white border-[#1f5fbf]' : ''
             }`}
           >
             AVEC EMAIL ({stats.emailCount} · {stats.verifiedCount} VÉRIFIÉS)
@@ -308,7 +308,7 @@ export const SuggestionsView: React.FC<SuggestionsViewProps> = ({
                     </span>
                     <div className="flex items-center gap-1">
                       {isVerified && (
-                        <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/30">
+                        <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 bg-[#1f5fbf]/10 text-[#1f5fbf] border border-[#1f5fbf]/30">
                           EMAIL VÉRIFIÉ
                         </span>
                       )}
@@ -327,7 +327,7 @@ export const SuggestionsView: React.FC<SuggestionsViewProps> = ({
                         {b.no_login ? 'SANS LOGIN' : b.ats_platform.toUpperCase()}
                       </span>
                       {b.is_tracked && (
-                        <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 bg-[#16a34a] text-white border border-[#16a34a]">
+                        <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 bg-[#1f5fbf] text-white border border-[#1f5fbf]">
                           POSTULÉ
                         </span>
                       )}
@@ -358,7 +358,7 @@ export const SuggestionsView: React.FC<SuggestionsViewProps> = ({
                         title="Copier cet email"
                       >
                         {copiedId === `${b.id}_main` ? (
-                          <Check className="w-3 h-3 text-[#16a34a]" />
+                          <Check className="w-3 h-3 text-[#1f5fbf]" />
                         ) : (
                           <Copy className="w-3 h-3" />
                         )}
@@ -426,7 +426,7 @@ export const SuggestionsView: React.FC<SuggestionsViewProps> = ({
                         href={`mailto:${activeEmail}?subject=${encodeURIComponent(
                           `Candidature Spontanée Stage Juin 2027 - ${b.target_role} - Léo Lombardini (EDHEC)`
                         )}`}
-                        className="sq-btn py-1 px-2 text-[10px] border-[#16a34a] text-[#16a34a]"
+                        className="sq-btn py-1 px-2 text-[10px] border-[#1f5fbf] text-[#1f5fbf]"
                         title={`Ouvrir mailto vers ${activeEmail}`}
                       >
                         <Mail className="w-3 h-3" />

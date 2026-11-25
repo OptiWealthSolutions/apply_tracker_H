@@ -405,7 +405,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                 type="button"
                 onClick={() => setNoLoginOnly(!noLoginOnly)}
                 className={`sq-btn py-1 px-2.5 text-[10px] ${
-                  noLoginOnly ? 'bg-[#16a34a] text-white border-[#16a34a]' : ''
+                  noLoginOnly ? 'bg-[#1f5fbf] text-white border-[#1f5fbf]' : ''
                 }`}
                 title="Filtrer les offres sans création de compte / mur de connexion"
               >
@@ -505,7 +505,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                   <div key={offer.id} className="sq-card flex flex-col justify-between min-h-[250px]">
                     <div className="h-[3px] w-full bg-[#e5e5e5]">
                       <div
-                        className={`h-full ${score >= 80 ? 'bg-[#16a34a]' : score >= 60 ? 'bg-black' : 'bg-[#9ca3af]'}`}
+                        className={`h-full ${score >= 80 ? 'bg-[#1f5fbf]' : score >= 60 ? 'bg-black' : 'bg-[#9ca3af]'}`}
                         style={{ width: `${Math.min(100, Math.max(8, score))}%` }}
                       />
                     </div>
@@ -519,7 +519,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                           <span
                             className={`text-[8.5px] font-bold uppercase tracking-wider px-1 py-0.5 border ${
                               isDirectNoLogin
-                                ? 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30'
+                                ? 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30'
                                 : 'bg-[#fafafa] text-[#9ca3af] border-[#e5e5e5]'
                             }`}
                           >
@@ -533,7 +533,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                         </div>
                         <span
                           className={`text-[13px] font-bold tabular-nums ${
-                            score >= 80 ? 'text-[#16a34a]' : 'text-[#111818]'
+                            score >= 80 ? 'text-[#1f5fbf]' : 'text-[#111818]'
                           }`}
                         >
                           {score.toFixed(1)}/100
@@ -566,7 +566,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                           {flags.map((f, i) => (
                             <span
                               key={i}
-                              className="text-[9px] font-bold px-1.5 py-0.5 bg-[#dc2626]/10 border border-[#dc2626]/30 text-[#dc2626] inline-flex items-center gap-1"
+                              className="text-[9px] font-bold px-1.5 py-0.5 bg-[#c8312b]/10 border border-[#c8312b]/30 text-[#c8312b] inline-flex items-center gap-1"
                             >
                               <AlertTriangle className="w-2.5 h-2.5" />
                               {f}
@@ -591,7 +591,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                           {offer.direct_apply_email && (
                             <a
                               href={`mailto:${offer.direct_apply_email}?subject=${encodeURIComponent(`Candidature Stage - ${offer.title} - Léo Lombardini`)}`}
-                              className="sq-btn py-1 px-2 text-[10px] border-[#16a34a] text-[#16a34a]"
+                              className="sq-btn py-1 px-2 text-[10px] border-[#1f5fbf] text-[#1f5fbf]"
                               title={`Envoyer par email à ${offer.direct_apply_email}`}
                             >
                               MAIL RH
@@ -617,7 +617,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
 
                         <div className="flex items-center gap-1">
                           {offer.is_applied ? (
-                            <span className="text-[9px] font-bold uppercase px-1.5 py-1 bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/30 inline-flex items-center gap-1">
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-1 bg-[#1f5fbf]/10 text-[#1f5fbf] border border-[#1f5fbf]/30 inline-flex items-center gap-1">
                               <Check className="w-2.5 h-2.5" />
                               SUIVI
                             </span>
@@ -642,7 +642,7 @@ export const OffersView: React.FC<OffersViewProps> = ({
                           </button>
                           <button
                             onClick={() => onDismissOffer(offer.id)}
-                            className="sq-btn py-1 px-1.5 text-[10px] hover:text-[#dc2626]"
+                            className="sq-btn py-1 px-1.5 text-[10px] hover:text-[#c8312b]"
                             title="Masquer"
                           >
                             <X className="w-3 h-3" />

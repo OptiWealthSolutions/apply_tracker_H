@@ -147,7 +147,7 @@ export const ApplyActionModal: React.FC<ApplyActionModalProps> = ({
               <span
                 className={`px-1.5 py-0.5 border text-[9px] ${
                   isNoLoginAts
-                    ? 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30'
+                    ? 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30'
                     : 'bg-white text-[#6b7280] border-[#e5e5e5]'
                 }`}
               >
@@ -342,7 +342,7 @@ export const ApplyActionModal: React.FC<ApplyActionModalProps> = ({
                   }
                   className="sq-btn py-1 px-2 text-[10px] shrink-0"
                 >
-                  {copiedField === 'all_snippets' ? <Check className="w-3 h-3 text-[#16a34a]" /> : <Copy className="w-3 h-3" />}
+                  {copiedField === 'all_snippets' ? <Check className="w-3 h-3 text-[#1f5fbf]" /> : <Copy className="w-3 h-3" />}
                   TOUT COPIER
                 </button>
               </div>
@@ -362,7 +362,7 @@ export const ApplyActionModal: React.FC<ApplyActionModalProps> = ({
                       </div>
                     </div>
                     <span className="text-[10px] font-bold uppercase text-[#6b7280] shrink-0">
-                      {copiedField === s.label ? <Check className="w-3.5 h-3.5 text-[#16a34a]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedField === s.label ? <Check className="w-3.5 h-3.5 text-[#1f5fbf]" /> : <Copy className="w-3.5 h-3.5" />}
                     </span>
                   </div>
                 ))}

@@ -91,7 +91,7 @@ export const OfferPrepModal: React.FC<OfferPrepModalProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="sq-card p-4 space-y-2">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#16a34a]">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#1f5fbf]">
                     POINTS FORTS
                   </div>
                   <ul className="text-[12px] space-y-1 list-disc pl-4 text-[#111818]">
@@ -101,14 +101,14 @@ export const OfferPrepModal: React.FC<OfferPrepModalProps> = ({
                   </ul>
                 </div>
                 <div className="sq-card p-4 space-y-2">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#dc2626]">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[#c8312b]">
                     MOTS-CLÉS MANQUANTS
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {atsData.missing_keywords.map((kw, i) => (
                       <span
                         key={i}
-                        className="text-[10px] font-semibold px-2 py-0.5 border border-[#dc2626]/30 bg-[#dc2626]/5 text-[#dc2626]"
+                        className="text-[10px] font-semibold px-2 py-0.5 border border-[#c8312b]/30 bg-[#c8312b]/5 text-[#c8312b]"
                       >
                         {kw}
                       </span>
@@ -139,7 +139,7 @@ export const OfferPrepModal: React.FC<OfferPrepModalProps> = ({
                     {open && (
                       <div className="px-3.5 pb-3.5 pt-2 border-t border-[#e5e5e5] bg-white space-y-2 text-[12px]">
                         <div className="text-[#111818]">{q.expected_answer}</div>
-                        <div className="text-[#16a34a] font-medium">Edge : {q.candidate_edge}</div>
+                        <div className="text-[#1f5fbf] font-medium">Edge : {q.candidate_edge}</div>
                       </div>
                     )}
                   </div>

@@ -144,13 +144,13 @@ export const CVModal: React.FC<CVModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {errorMessage && (
-            <div className="p-3 bg-[#dc2626]/10 border border-[#dc2626]/30 text-[#dc2626] text-[12px] flex items-center gap-2">
+            <div className="p-3 bg-[#c8312b]/10 border border-[#c8312b]/30 text-[#c8312b] text-[12px] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
           {statusMsg && (
-            <div className="p-3 bg-[#16a34a]/10 border border-[#16a34a]/30 text-[#16a34a] text-[12px] flex items-center gap-2">
+            <div className="p-3 bg-[#1f5fbf]/10 border border-[#1f5fbf]/30 text-[#1f5fbf] text-[12px] flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{statusMsg}</span>
             </div>

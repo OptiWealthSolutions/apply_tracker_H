@@ -419,7 +419,7 @@ export function App() {
         </div>
       )}
 
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-5 md:px-10 pb-12 pt-4">
+      <main className="flex-1 w-full px-5 md:px-8 pb-12 pt-5">
         {currentTab === 'digest' && (
           <DailyDigestView
             digest={digest}

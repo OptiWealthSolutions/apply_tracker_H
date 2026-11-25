@@ -51,17 +51,17 @@ export const STATUS_CONFIG: Record<
   },
   interviewing: {
     label: 'Entretien',
-    badgeClass: 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30',
+    badgeClass: 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30',
     icon: Briefcase,
   },
   offer_received: {
     label: 'Offre reçue',
-    badgeClass: 'bg-[#16a34a] text-white border-[#16a34a]',
+    badgeClass: 'bg-[#1f5fbf] text-white border-[#1f5fbf]',
     icon: CheckCircle2,
   },
   rejected: {
     label: 'Refusé',
-    badgeClass: 'bg-[#dc2626]/10 text-[#dc2626] border-[#dc2626]/30',
+    badgeClass: 'bg-[#c8312b]/10 text-[#c8312b] border-[#c8312b]/30',
     icon: XCircle,
   },
   withdrawn: {
@@ -297,7 +297,7 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
                           </button>
                           <button
                             onClick={() => onDeleteApplication(app.id)}
-                            className="sq-btn py-1 px-2 text-[10px] hover:text-[#dc2626]"
+                            className="sq-btn py-1 px-2 text-[10px] hover:text-[#c8312b]"
                             title="Supprimer"
                           >
                             <Trash2 className="w-3 h-3" />

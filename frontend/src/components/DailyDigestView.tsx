@@ -144,13 +144,13 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
   }, [items, selectedIdx, onDirectApply, onQuickApplied, onSaveToTracker, handleDismiss, handleUndo]);
 
   const getScoreBarColor = (score: number) => {
-    if (score >= 80) return 'bg-[#16a34a]';
+    if (score >= 80) return 'bg-[#1f5fbf]';
     if (score >= 60) return 'bg-[#111818]';
     return 'bg-[#9ca3af]';
   };
 
   const getScoreTextColor = (score: number) => {
-    if (score >= 80) return 'text-[#16a34a]';
+    if (score >= 80) return 'text-[#1f5fbf]';
     if (score >= 60) return 'text-[#111818]';
     return 'text-[#6b7280]';
   };
@@ -183,7 +183,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
               <span
                 className={`text-[9px] font-bold uppercase px-1.5 py-0.5 border ${
                   digest?.ollama_active
-                    ? 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30'
+                    ? 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30'
                     : 'bg-[#f59e0b]/10 text-[#b45309] border-[#f59e0b]/30'
                 }`}
               >
@@ -209,7 +209,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
               <div className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#6b7280]">
                 NOUVELLES ({windowDays}J)
               </div>
-              <div className="text-[18px] font-bold text-[#16a34a]">
+              <div className="text-[18px] font-bold text-[#1f5fbf]">
                 {digest?.new_in_window_count ?? '—'}
               </div>
             </div>
@@ -285,7 +285,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
 
           <button
             onClick={() => onToggleNoLoginOnly(!noLoginOnly)}
-            className={`sq-btn h-[28px] text-[10px] ${noLoginOnly ? 'bg-[#16a34a] text-white border-[#16a34a]' : ''}`}
+            className={`sq-btn h-[28px] text-[10px] ${noLoginOnly ? 'bg-[#1f5fbf] text-white border-[#1f5fbf]' : ''}`}
             title="Afficher uniquement les candidatures directes sans création de compte (Greenhouse, Lever, Ashby, Portails Directs)"
           >
             SANS LOGIN ({digest?.no_login_count ?? 0})
@@ -418,8 +418,8 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
           ))}
         </div>
       ) : errorMessage && !digest ? (
-        <div className="sq-card p-10 text-center border-[#dc2626]/40">
-          <p className="text-[12px] font-semibold text-[#dc2626]">{errorMessage}</p>
+        <div className="sq-card p-10 text-center border-[#c8312b]/40">
+          <p className="text-[12px] font-semibold text-[#c8312b]">{errorMessage}</p>
         </div>
       ) : items.length === 0 ? (
         <div className="sq-card p-10 text-center">
@@ -456,7 +456,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
                       <span
                         className={`text-[9px] font-bold uppercase tracking-[0.1em] px-1.5 py-0.5 border tabular-nums ${
                           item.freshness_days <= 3
-                            ? 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30'
+                            ? 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30'
                             : 'bg-white text-[#6b7280] border-[#e5e5e5]'
                         }`}
                       >
@@ -469,7 +469,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
                         className={`text-[8.5px] font-bold uppercase tracking-[0.06em] px-1 py-0.5 border ${
                           item.login_required
                             ? 'bg-[#fafafa] text-[#9ca3af] border-[#e5e5e5]'
-                            : 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30'
+                            : 'bg-[#1f5fbf]/10 text-[#1f5fbf] border-[#1f5fbf]/30'
                         }`}
                         title={item.login_required ? 'Compte/connexion requis sur cette plateforme' : 'Formulaire direct sans création de compte'}
                       >
@@ -516,7 +516,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
                     {hard_flags.map((flag, fIdx) => (
                       <span
                         key={fIdx}
-                        className="text-[9px] font-bold px-1.5 py-0.5 bg-[#dc2626]/10 border border-[#dc2626]/30 text-[#dc2626] inline-flex items-center gap-1"
+                        className="text-[9px] font-bold px-1.5 py-0.5 bg-[#c8312b]/10 border border-[#c8312b]/30 text-[#c8312b] inline-flex items-center gap-1"
                       >
                         <AlertTriangle className="w-2.5 h-2.5" />
                         {flag}
@@ -544,7 +544,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
                         <a
                           href={`mailto:${offer.direct_apply_email}?subject=${encodeURIComponent(`Candidature Stage - ${offer.title} - Léo Lombardini`)}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="sq-btn py-1 px-2 text-[10px] border-[#16a34a] text-[#16a34a]"
+                          className="sq-btn py-1 px-2 text-[10px] border-[#1f5fbf] text-[#1f5fbf]"
                           title={`Envoyer directement par email à ${offer.direct_apply_email}`}
                         >
                           MAIL RH
@@ -565,7 +565,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
 
                     <div className="flex items-center gap-1">
                       {offer.is_applied ? (
-                        <span className="text-[9px] font-bold uppercase px-1.5 py-1 bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/30 inline-flex items-center gap-1">
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-1 bg-[#1f5fbf]/10 text-[#1f5fbf] border border-[#1f5fbf]/30 inline-flex items-center gap-1">
                           <Check className="w-2.5 h-2.5" />
                           POSTULÉ
                         </span>
@@ -598,7 +598,7 @@ export const DailyDigestView: React.FC<DailyDigestViewProps> = ({
                               e.stopPropagation();
                               handleDismiss(offer.id);
                             }}
-                            className="sq-btn py-1 px-1.5 text-[10px] hover:text-[#dc2626]"
+                            className="sq-btn py-1 px-1.5 text-[10px] hover:text-[#c8312b]"
                             title="Passer cette offre (X)"
                           >
                             <X className="w-3 h-3" />

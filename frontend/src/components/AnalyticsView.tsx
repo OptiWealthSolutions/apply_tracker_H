@@ -60,7 +60,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#6b7280]">
             TAUX CONVERSION ENTRETIEN
           </div>
-          <div className="text-[24px] font-bold tabular-nums text-[#16a34a] mt-1">
+          <div className="text-[24px] font-bold tabular-nums text-[#1f5fbf] mt-1">
             {interview_conversion_rate}
           </div>
           <div className="text-[11px] text-[#6b7280] mt-0.5 tabular-nums">
