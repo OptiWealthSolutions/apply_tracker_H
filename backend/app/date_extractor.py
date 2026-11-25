@@ -134,5 +134,5 @@ def extract_internship_dates(title: str, text: str = "", contract_type: str = ""
     if any(k in combined for k in ["dès que possible", "asap", "immédiat", "immediate", "dès maintenant"]):
         return "Immédiat / Dès que possible", "6 mois après démarrage", duration
 
-    # 5. Default standard market finance off-cycle timeline (EDHEC M1 target: Juin 2027)
-    return "Juin 2027", "Décembre 2027", duration
+    # 5. If no explicit date found, mark clearly as Flexible rather than assuming June 2027
+    return "Flexible / Non précisée", "6 mois", duration

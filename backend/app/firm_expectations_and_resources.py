@@ -182,7 +182,7 @@ FIRM_EXPECTATIONS_DATABASE: List[FirmInterviewExpectation] = [
             "Quelles sont les trois manières principales pour un fonds de PE de sortir d'un investissement ?"
         ],
         insider_candidate_tips="Lazard Paris adore tester la compréhension approfondie d'IFRS 16 et la transition Dette Nette / Enterprise Value. Soyez incollable sur ces points.",
-        official_careers_url="https://www.lazard.com/careers/students/"
+        official_careers_url="https://www.lazard.com/careers/"
     ),
 
     # --- GLOBAL MARKETS & S&T ---
@@ -219,7 +219,7 @@ FIRM_EXPECTATIONS_DATABASE: List[FirmInterviewExpectation] = [
             "Comment couvrez-vous un Autocall à 3 jours de l'échéance si le spot est à 1% au-dessus de la barrière de protection ?"
         ],
         insider_candidate_tips="BNP valorise énormément les projets personnels concrets : mettez impérativement en avant votre plateforme Horacle Hub et vos backtests vectorisés sous Python.",
-        official_careers_url="https://group.bnpparibas/emploi-carriere"
+        official_careers_url="https://group.bnpparibas/emploi-carriere/toutes-offres-emploi/stage"
     ),
     FirmInterviewExpectation(
         id="firm_sg_markets",
@@ -397,7 +397,7 @@ FIRM_EXPECTATIONS_DATABASE: List[FirmInterviewExpectation] = [
             "Quelle est la différence entre le TRI (IRR) et le multiple monétaire (MoIC) ? Pourquoi un fonds préfère-t-il parfois un MoIC plus élevé qu'un TRI élevé ?"
         ],
         insider_candidate_tips="Apprenez par cœur la table d'équivalence MoIC vers TRI pour des durées de détention de 3, 4 et 5 ans. C'est l'atout roi des tests papier LBO.",
-        official_careers_url="https://www.ardian.com/careers"
+        official_careers_url="https://www.ardian.com/talent"
     ),
 
     # --- AUDIT & TRANSACTION SERVICES ---

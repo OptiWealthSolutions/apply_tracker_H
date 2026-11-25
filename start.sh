@@ -17,14 +17,14 @@ if [ ! -d "venv" ]; then
 fi
 
 # 2. Démarrage du Backend FastAPI
-echo "Lancement du backend FastAPI sur http://127.0.0.1:8000 ..."
-./venv/bin/python3 backend/run.py &
+echo "Lancement du backend FastAPI sur http://127.0.0.1:8002 ..."
+./venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8002 --reload --app-dir backend &
 BACKEND_PID=$!
 
 # 3. Démarrage du Frontend React (Vite)
 echo "Lancement du frontend React Vite sur http://localhost:5173 ..."
 cd frontend
-npm run dev -- --host 127.0.0.1 &
+npm run dev -- --host 127.0.0.1 --port 5173 &
 FRONTEND_PID=$!
 
 cleanup() {
@@ -40,7 +40,7 @@ trap cleanup INT TERM
 echo ""
 echo "AlphaTracker est opérationnel :"
 echo "  - Interface Web : http://localhost:5173"
-echo "  - API Backend   : http://127.0.0.1:8000/docs"
+echo "  - API Backend   : http://127.0.0.1:8002/docs"
 echo "Appuyez sur Ctrl+C pour arrêter l'application."
 echo "=========================================================="
 

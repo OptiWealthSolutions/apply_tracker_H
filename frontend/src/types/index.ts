@@ -30,8 +30,47 @@ export interface JobOffer {
   scraped_at?: string;
   is_favorite: boolean;
   is_applied: boolean;
+  is_dismissed?: boolean;
+  ats_platform?: string;
+  qwen_score?: number;
+  qwen_reasons?: string;
+  hard_flags?: string;
   tags?: string;
   direct_apply_email?: string;
+}
+
+export interface DigestOfferItem {
+  offer: JobOffer;
+  qwen_score: number;
+  freshness_days: number;
+  freshness_label: string;
+  ats_platform: string;
+  login_required?: boolean;
+  match_reasons: string[];
+  hard_flags: string[];
+  is_serendipity_gem: boolean;
+}
+
+export interface DigestResponse {
+  generated_at: string;
+  window_days: number;
+  target_start_period?: string;
+  selected_start_filter?: string;
+  exclude_pure_quant?: boolean;
+  selected_platform?: string;
+  no_login_only?: boolean;
+  no_login_count?: number;
+  platform_counts?: Record<string, number>;
+  engine_name: string;
+  ollama_active: boolean;
+  ridge_samples: number;
+  total_available: number;
+  new_in_window_count: number;
+  latest_offers: DigestOfferItem[];
+  top_qwen_picks: DigestOfferItem[];
+  serendipity_gems: DigestOfferItem[];
+  follow_up_alerts_count: number;
+  active_interviews_count: number;
 }
 
 export interface Application {
@@ -53,6 +92,7 @@ export interface Application {
   notes?: string;
   cover_letter?: string;
   resume_version?: string;
+  status_history?: string;
   created_at?: string;
   updated_at?: string;
   offer?: JobOffer | null;
@@ -142,6 +182,8 @@ export interface RecommendationResponse {
   serendipity_gems: RecommendationItem[];
   total_evaluated: number;
   profile_summary: string;
+  engine_name?: string;
+  ridge_trained_samples?: number;
 }
 
 export interface ApplyPitchResponse {
@@ -150,12 +192,15 @@ export interface ApplyPitchResponse {
   quick_email_pitch: string;
   mailto_url: string;
   recommended_portfolio_bullets: string[];
+  generated_by?: string;
   cv_view_url?: string;
   cv_download_url?: string;
 }
 
 export interface CVInfo {
   id: number;
+  variant?: string;
+  label?: string;
   filename: string;
   mime_type: string;
   file_size: number;
@@ -277,6 +322,45 @@ export interface FirmInterviewExpectation {
   typical_interview_questions: string[];
   insider_candidate_tips: string;
   official_careers_url: string;
+}
+
+export interface BoutiqueEmailItem {
+  email: string;
+  source: string;
+  kind: string;
+  priority: number;
+}
+
+export interface BoutiqueKeyPerson {
+  name: string;
+  role: string;
+  linkedin_url?: string | null;
+  email_guess?: string | null;
+  source_url?: string;
+}
+
+export interface SuggestedBoutique {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  hub: string;
+  website_url: string;
+  careers_url: string;
+  spontaneous_email?: string | null;
+  best_email?: string | null;
+  email_confidence?: 'verified_site' | 'pattern_inferred' | 'none' | string;
+  emails?: BoutiqueEmailItem[];
+  key_people?: BoutiqueKeyPerson[];
+  company_linkedin_url?: string | null;
+  linkedin_search_url?: string | null;
+  mx_valid?: boolean;
+  ats_platform: string;
+  no_login: boolean;
+  target_role: string;
+  specialties: string[];
+  leo_fit_angle: string;
+  is_tracked: boolean;
 }
 
 export interface EducationalResource {

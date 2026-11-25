@@ -7,6 +7,7 @@ from curl_cffi.requests import AsyncSession
 
 from .scraper import (
     BROWSERS,
+    _scrape_jobspy_sync,
     clean_tracking_url,
     clean_job_title,
     infer_desk_and_asset_class,
@@ -23,8 +24,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "BNP Paribas CIB",
         "category": "Banque d'Investissement",
         "region": "France / Europe / Global",
-        "career_portal_url": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi",
-        "search_url_template": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi?keyword={query}",
+        "career_portal_url": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi/stage",
+        "search_url_template": "https://group.bnpparibas/emploi-carriere/toutes-offres-emploi/stage?search={query}",
         "specialties": ["Global Markets", "Equity Derivatives", "Fixed Income", "Asset Management"]
     },
     {
@@ -32,8 +33,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Société Générale CIB",
         "category": "Banque d'Investissement",
         "region": "France / Europe / Global",
-        "career_portal_url": "https://careers.societegenerale.com/recherche-d-offres",
-        "search_url_template": "https://careers.societegenerale.com/recherche-d-offres?keyword={query}",
+        "career_portal_url": "https://careers.societegenerale.com/",
+        "search_url_template": "https://careers.societegenerale.com/en/search?keyword={query}",
         "specialties": ["SGCIB", "Derivatives", "Quant Trading", "Cross-Asset Research"]
     },
     {
@@ -41,8 +42,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Crédit Agricole CIB / Amundi",
         "category": "Banque d'Investissement",
         "region": "France / Europe / Global",
-        "career_portal_url": "https://www.groupecreditagricole.jobs/nos-offres-d-emploi/",
-        "search_url_template": "https://www.groupecreditagricole.jobs/nos-offres-d-emploi/?keywords={query}",
+        "career_portal_url": "https://jobs.ca-cib.com/offre-de-emploi/liste-toutes-offres.aspx?all=1",
+        "search_url_template": "https://jobs.ca-cib.com/?keyword={query}",
         "specialties": ["Rates & FX", "Structured Finance", "Asset Management (Amundi)"]
     },
     {
@@ -59,8 +60,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Oddo BHF",
         "category": "Banque d'Investissement",
         "region": "France / Allemagne",
-        "career_portal_url": "https://www.oddo-bhf.com/fr/carrieres",
-        "search_url_template": "https://www.oddo-bhf.com/fr/carrieres?query={query}",
+        "career_portal_url": "https://recrutement.altays-progiciels.com/oddo/",
+        "search_url_template": "https://recrutement.altays-progiciels.com/oddo/fr/recherche.html?motsClefs={query}",
         "specialties": ["Asset Management", "Private Wealth", "Brokerage"]
     },
     {
@@ -68,8 +69,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Kepler Cheuvreux",
         "category": "Banque d'Investissement",
         "region": "Europe",
-        "career_portal_url": "https://www.keplercheuvreux.com/careers/",
-        "search_url_template": "https://www.keplercheuvreux.com/careers/?s={query}",
+        "career_portal_url": "https://keplercheuvreux.teamtailor.com/",
+        "search_url_template": "https://keplercheuvreux.teamtailor.com/jobs?query={query}",
         "specialties": ["Equity Research", "Execution", "Fixed Income"]
     },
     {
@@ -122,8 +123,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "UBS",
         "category": "Banque d'Investissement",
         "region": "Suisse / Global",
-        "career_portal_url": "https://jobs.ubs.com/",
-        "search_url_template": "https://jobs.ubs.com/TGnewUI/Search/Home/HomeWithPreLoad?partnerid=25008&siteid=5012#keyWordSearch={query}",
+        "career_portal_url": "https://www.ubs.com/global/en/careers.html",
+        "search_url_template": "https://jobs.ubs.com/TGnewUI/Search/home/Home?partnerid=25008&siteid=5012&keyword={query}",
         "specialties": ["Investment Bank Quants", "Global Wealth Management", "Asset Management"]
     },
     {
@@ -158,8 +159,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Jefferies",
         "category": "Banque d'Investissement",
         "region": "US / Europe",
-        "career_portal_url": "https://jefferies.wd5.myworkdayjobs.com/Jefferies_Careers",
-        "search_url_template": "https://jefferies.wd5.myworkdayjobs.com/Jefferies_Careers?q={query}",
+        "career_portal_url": "https://www.jefferies.com/careers/",
+        "search_url_template": "https://www.jefferies.com/careers/?q={query}",
         "specialties": ["Equities", "Fixed Income", "Electronic Trading"]
     },
 
@@ -169,8 +170,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Rothschild & Co",
         "category": "M&A & Conseil Financier",
         "region": "France / UK / Global",
-        "career_portal_url": "https://www.rothschildandco.com/en/careers/opportunities/",
-        "search_url_template": "https://www.rothschildandco.com/en/careers/opportunities/?search={query}",
+        "career_portal_url": "https://www.rothschildandco.com/en/careers/",
+        "search_url_template": "https://www.rothschildandco.com/en/careers/?q={query}",
         "specialties": ["Global Advisory M&A", "Sovereign Advisory", "Merchant Banking", "Produits Structurés"]
     },
     {
@@ -178,8 +179,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Lazard Frères",
         "category": "M&A & Conseil Financier",
         "region": "France / US / Global",
-        "career_portal_url": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers",
-        "search_url_template": "https://lazard.wd5.myworkdayjobs.com/Lazard_Careers?q={query}",
+        "career_portal_url": "https://www.lazard.com/careers/",
+        "search_url_template": "https://www.lazard.com/careers/?q={query}",
         "specialties": ["Financial Advisory M&A", "Restructuring", "Lazard Asset Management"]
     },
     {
@@ -234,8 +235,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Amundi Asset Management",
         "category": "Private Equity & AM",
         "region": "France / Europe / Global",
-        "career_portal_url": "https://about.amundi.com/carrieres",
-        "search_url_template": "https://about.amundi.com/carrieres/offres?keyword={query}",
+        "career_portal_url": "https://jobs.amundi.com/",
+        "search_url_template": "https://jobs.amundi.com/?keyword={query}",
         "specialties": ["Gestion Passive & ETF", "Multi-Asset", "Recherche Économique", "ESG"]
     },
     {
@@ -243,8 +244,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Ardian",
         "category": "Private Equity & AM",
         "region": "France / Europe / US",
-        "career_portal_url": "https://www.ardian.com/careers",
-        "search_url_template": "https://www.ardian.com/careers?q={query}",
+        "career_portal_url": "https://www.ardian.com/talent",
+        "search_url_template": "https://www.ardian.com/talent?q={query}",
         "specialties": ["Direct LBO", "Private Debt", "Infrastructure", "Fonds de Fonds"]
     },
     {
@@ -252,8 +253,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Eurazeo",
         "category": "Private Equity & AM",
         "region": "France / Europe / US",
-        "career_portal_url": "https://www.eurazeo.com/fr/carrieres",
-        "search_url_template": "https://www.eurazeo.com/fr/carrieres?query={query}",
+        "career_portal_url": "https://www.eurazeo.com/fr/talents",
+        "search_url_template": "https://www.eurazeo.com/fr/talents?q={query}",
         "specialties": ["Mid-Large Buyout", "Growth Equity", "Private Debt", "Real Assets"]
     },
     {
@@ -261,8 +262,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "EQT Partners",
         "category": "Private Equity & AM",
         "region": "Suède / Europe / Global",
-        "career_portal_url": "https://eqtgroup.com/careers/",
-        "search_url_template": "https://eqtgroup.com/careers/?s={query}",
+        "career_portal_url": "https://job-boards.greenhouse.io/eqtpartners",
+        "search_url_template": "https://job-boards.greenhouse.io/eqtpartners?keyword={query}",
         "specialties": ["Private Capital", "Infrastructure", "Real Estate", "Venture"]
     },
     {
@@ -299,8 +300,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Point72 Asset Management",
         "category": "Hedge Fund & Prop Trading",
         "region": "US / UK / Global",
-        "career_portal_url": "https://careers.point72.com/",
-        "search_url_template": "https://careers.point72.com/search-jobs/{query}",
+        "career_portal_url": "https://point72.com/students-early-career/",
+        "search_url_template": "https://point72.com/students-early-career/?q={query}",
         "specialties": ["Long/Short Equity", "Cubist Systematic Strategies", "Macro & Discretionary"]
     },
     {
@@ -317,8 +318,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Brevan Howard",
         "category": "Hedge Fund & Prop Trading",
         "region": "UK / US / Global",
-        "career_portal_url": "https://www.brevanhoward.com/careers/",
-        "search_url_template": "https://www.brevanhoward.com/careers/?search={query}",
+        "career_portal_url": "https://careers.brevanhoward.com/gb/en",
+        "search_url_template": "https://careers.brevanhoward.com/gb/en?q={query}",
         "specialties": ["Global Macro", "Systematic Trading", "Fixed Income & FX"]
     },
     {
@@ -344,8 +345,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Flow Traders",
         "category": "Hedge Fund & Prop Trading",
         "region": "Pays-Bas / Europe / US",
-        "career_portal_url": "https://www.flowtraders.com/careers",
-        "search_url_template": "https://www.flowtraders.com/careers/jobs?search={query}",
+        "career_portal_url": "https://www.flowtraders.com/careers/job-search",
+        "search_url_template": "https://job-boards.greenhouse.io/flowtraders?keyword={query}",
         "specialties": ["ETP & Bond Market Making", "Digital Assets", "Algorithmic Arbitrage"]
     },
 
@@ -355,8 +356,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "PwC (PricewaterhouseCoopers)",
         "category": "Audit & Transaction Services",
         "region": "France / Global",
-        "career_portal_url": "https://carrieres.pwc.fr/",
-        "search_url_template": "https://carrieres.pwc.fr/fr/offres-d-emploi?keyword={query}",
+        "career_portal_url": "https://carrieres.pwc.fr/fr/",
+        "search_url_template": "https://carrieres.pwc.fr/fr/?keyword={query}",
         "specialties": ["Transaction Services (TS)", "Financial Due Diligence", "Audit Financier Marchés", "Deals Valuation"]
     },
     {
@@ -364,8 +365,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Deloitte",
         "category": "Audit & Transaction Services",
         "region": "France / Global",
-        "career_portal_url": "https://deloitte.recrutement.net/",
-        "search_url_template": "https://deloitte.recrutement.net/recherche-offres?keyword={query}",
+        "career_portal_url": "https://www.deloitte.com/fr/fr/careers.html",
+        "search_url_template": "https://www.deloitte.com/fr/fr/careers.html?q={query}",
         "specialties": ["Financial Advisory (FDD)", "Audit Bancaire & Asset Management", "Forensic", "Restructuring"]
     },
     {
@@ -373,8 +374,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "EY (Ernst & Young)",
         "category": "Audit & Transaction Services",
         "region": "France / Global",
-        "career_portal_url": "https://ey.taleo.net/careersection/ey_careers/jobsearch.ftl",
-        "search_url_template": "https://ey.taleo.net/careersection/ey_careers/jobsearch.ftl?keyword={query}",
+        "career_portal_url": "https://www.ey.com/fr_fr/careers",
+        "search_url_template": "https://www.ey.com/fr_fr/careers?q={query}",
         "specialties": ["Strategy and Transactions (SaT)", "Valuation & Business Modeling", "Audit FSO (Financial Services)"]
     },
     {
@@ -382,8 +383,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "KPMG",
         "category": "Audit & Transaction Services",
         "region": "France / Global",
-        "career_portal_url": "https://carrieres.kpmg.fr/",
-        "search_url_template": "https://carrieres.kpmg.fr/nos-offres?query={query}",
+        "career_portal_url": "https://emplois.kpmg.fr/",
+        "search_url_template": "https://emplois.kpmg.fr/?q={query}",
         "specialties": ["Deal Advisory (TS/M&A)", "Financial Services Audit", "Corporate Finance", "Restructuring"]
     },
     {
@@ -391,8 +392,8 @@ BANK_DIRECTORIES: List[Dict[str, Any]] = [
         "name": "Forvis Mazars",
         "category": "Audit & Transaction Services",
         "region": "France / Global",
-        "career_portal_url": "https://carrieres.mazars.fr/",
-        "search_url_template": "https://carrieres.mazars.fr/offres-emploi?keyword={query}",
+        "career_portal_url": "https://recrutement-fr.forvismazars.com/",
+        "search_url_template": "https://recrutement-fr.forvismazars.com/?keyword={query}",
         "specialties": ["Audit Grands Comptes & CIB", "Transaction Services", "Modélisation Financière", "Actuariat"]
     },
 
@@ -449,102 +450,259 @@ def get_bank_directory() -> List[Dict[str, Any]]:
     return BANK_DIRECTORIES
 
 
+GREENHOUSE_BOARD_SLUGS = {
+    "eqt": "eqtpartners",
+    "flow_traders": "flowtraders",
+    "point72": "point72",
+}
+
+
+def _estimate_bank_salary(job_loc: str) -> int:
+    """Estimate monthly internship compensation from city name."""
+    loc_lower = (job_loc or "").lower()
+    if "new york" in loc_lower or "ny" in loc_lower:
+        return 4500
+    if "london" in loc_lower or "londres" in loc_lower:
+        return 3800
+    if "geneva" in loc_lower or "genève" in loc_lower or "zurich" in loc_lower or "monaco" in loc_lower:
+        return 3600
+    if "luxembourg" in loc_lower:
+        return 3000
+    if "milan" in loc_lower or "marseille" in loc_lower:
+        return 2400
+    return 2800
+
+
+def _build_bank_candidate(
+    bank_info: Dict[str, Any],
+    raw_title: str,
+    company: str,
+    job_loc: str,
+    url: str,
+    keyword: str,
+    date_posted: str = "Récemment",
+    source_suffix: str = "Direct",
+) -> Dict[str, Any]:
+    """Normalize a scraped job hit into the live bank search result shape."""
+    bank_name = bank_info["name"]
+    cleaned_title = clean_job_title(raw_title)
+    desk, asset_class = infer_desk_and_asset_class(cleaned_title, company)
+    start_date, end_date, duration = extract_internship_dates(cleaned_title, "", "Stage 6 mois")
+
+    contract_type = "Stage Césure / Off-Cycle (6 mois)"
+    if "10 semaine" in duration:
+        contract_type = "Summer Analyst (10 semaines)"
+    elif "PFE" in duration or "4-6" in duration:
+        contract_type = "Stage Fin d'Études (PFE)"
+
+    search_tpl = bank_info.get("search_url_template") or bank_info.get("career_portal_url") or ""
+    return {
+        "title": cleaned_title,
+        "company": company or bank_name,
+        "location": job_loc or "Europe",
+        "desk": desk,
+        "asset_class": asset_class,
+        "contract_type": contract_type,
+        "description": f"Poste en direct chez {company or bank_name} sur le desk {desk} ({asset_class}). Postulez directement via le portail carrières officiel.",
+        "requirements": "Master 1/2 Finance (EDHEC / Grande École / Ingénieur). Maîtrise Python, analyse macro/marchés, pricing ou corporate finance.",
+        "url": clean_tracking_url(url),
+        "bank_career_portal_url": bank_info.get("career_portal_url"),
+        "bank_search_url": search_tpl.format(query=urllib.parse.quote(keyword)),
+        "salary_monthly": _estimate_bank_salary(job_loc),
+        "source": f"Portail Carrières {bank_name} ({source_suffix})",
+        "date_posted": date_posted or "Récemment",
+        "start_date": start_date,
+        "end_date": end_date,
+        "duration_months": duration,
+        "tags": f"{desk}, {asset_class}, {job_loc}, {bank_name}, Portail Direct",
+        "bank_id": bank_info["id"],
+        "bank_category": bank_info["category"],
+    }
+
+
+async def _query_greenhouse_board(
+    session: AsyncSession,
+    bank_info: Dict[str, Any],
+    slug: str,
+    keyword: str,
+    location: str,
+) -> List[Dict[str, Any]]:
+    """Query public Greenhouse board API for direct roles matching keyword/location."""
+    kw_tokens = [t.lower() for t in keyword.split() if len(t) > 2]
+    loc_lower = (location or "").strip().lower()
+    resp = await session.get(f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs", timeout=8.0)
+    if resp.status_code != 200:
+        return []
+    hits: List[Dict[str, Any]] = []
+    for job in resp.json().get("jobs", []):
+        title = job.get("title") or ""
+        job_url = job.get("absolute_url") or ""
+        job_loc = (job.get("location") or {}).get("name") or location
+        if not title or not job_url:
+            continue
+        haystack = f"{title} {job_loc}".lower()
+        if kw_tokens and not any(tok in haystack for tok in kw_tokens):
+            continue
+        if loc_lower and loc_lower not in ("all", "toutes", "europe") and loc_lower not in job_loc.lower():
+            # Keep roles even if location only broadly matches intern hubs
+            if not any(h in job_loc.lower() for h in ("paris", "london", "amsterdam", "zurich", "stockholm")):
+                continue
+        if not is_finance_job(title, bank_info["name"]):
+            continue
+        hits.append(
+            _build_bank_candidate(
+                bank_info,
+                title,
+                bank_info["name"],
+                job_loc,
+                job_url,
+                keyword,
+                date_posted=(job.get("updated_at") or "")[:10] or "Récemment",
+                source_suffix="ATS Direct",
+            )
+        )
+        if len(hits) >= 8:
+            break
+    return hits
+
+
 async def execute_live_bank_query(
     bank_info: Dict[str, Any],
     keyword: str,
     location: str = "Paris"
 ) -> List[Dict[str, Any]]:
     """
-    Executes live real-time search for an exact bank and keyword across its posting channels.
+    Executes live real-time search for an exact bank and keyword across ATS, LinkedIn Guest, and Indeed fallback.
     """
     bank_name = bank_info["name"]
-    query_str = f"{bank_name} {keyword}"
-    encoded_q = urllib.parse.quote(query_str)
-    encoded_loc = urllib.parse.quote(location)
-    api_url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={encoded_q}&location={encoded_loc}&start=0"
-
+    candidates: List[Dict[str, Any]] = []
+    seen_urls: set[str] = set()
     browser = random.choice(BROWSERS)
-    try:
-        async with AsyncSession(impersonate=browser) as session:
-            resp = await session.get(api_url, timeout=7.0)
-            if resp.status_code != 200:
-                return []
 
-            soup = BeautifulSoup(resp.text, "html.parser")
-            cards = soup.select("li")
-            candidates = []
-
-            for card in cards:
-                title_elem = card.select_one(".base-search-card__title")
-                comp_elem = card.select_one(".base-search-card__subtitle")
-                loc_elem = card.select_one(".job-search-card__location")
-                link_elem = card.select_one("a.base-card__full-link")
-                date_elem = card.select_one("time")
-
-                if not title_elem or not link_elem:
-                    continue
-
-                raw_title = title_elem.get_text(strip=True)
-                company = comp_elem.get_text(strip=True) if comp_elem else bank_name
-                job_loc = loc_elem.get_text(strip=True) if loc_elem else location
-                raw_link = link_elem.get("href", "")
-                date_posted = date_elem.get("datetime") if date_elem else "Récemment"
-
-                # Keep relevant postings (must relate to finance desk)
-                if not is_finance_job(raw_title, company):
-                    continue
-
-                clean_url = clean_tracking_url(raw_link)
-                cleaned_title = clean_job_title(raw_title)
-                desk, asset_class = infer_desk_and_asset_class(cleaned_title, company)
-
-                # Extract start date, end date, and duration
-                start_date, end_date, duration = extract_internship_dates(cleaned_title, "", "Stage 6 mois")
-
-                contract_type = "Stage Césure / Off-Cycle (6 mois)"
-                if "10 semaine" in duration:
-                    contract_type = "Summer Analyst (10 semaines)"
-                elif "PFE" in duration or "4-6" in duration:
-                    contract_type = "Stage Fin d'Études (PFE)"
-
-                loc_lower = job_loc.lower()
-                salary = 4500 if ("new york" in loc_lower or "ny" in loc_lower) else (
-                    3800 if ("london" in loc_lower or "londres" in loc_lower) else (
-                        3600 if ("geneva" in loc_lower or "genève" in loc_lower or "zurich" in loc_lower) else (
-                            3000 if "luxembourg" in loc_lower else (
-                                2400 if ("milan" in loc_lower or "marseille" in loc_lower) else 2800
+    async with AsyncSession(impersonate=browser) as session:
+        if bank_info["id"] in ("bnp_paribas", "credit_agricole_cib", "amundi", "kepler_cheuvreux"):
+            try:
+                from .ats_poller import (
+                    TEAMTAILOR_FEEDS,
+                    TALENTSOFT_FEEDS,
+                    _poll_bnp_stage_pages,
+                    _poll_talentsoft_all,
+                    _poll_teamtailor_rss,
+                )
+                import httpx
+                direct_rows: List[Dict[str, Any]] = []
+                if bank_info["id"] == "bnp_paribas":
+                    direct_rows = await _poll_bnp_stage_pages()
+                elif bank_info["id"] in ("credit_agricole_cib", "amundi"):
+                    feed = next((f for f in TALENTSOFT_FEEDS if f["id"] == bank_info["id"]), None)
+                    if feed:
+                        direct_rows = await _poll_talentsoft_all(feed)
+                elif bank_info["id"] == "kepler_cheuvreux":
+                    async with httpx.AsyncClient() as hclient:
+                        direct_rows = await _poll_teamtailor_rss(hclient, TEAMTAILOR_FEEDS[0])
+                kw_toks = [t.lower() for t in keyword.split() if len(t) > 2 and t.lower() not in ("stage", "intern", "paris")]
+                for row in direct_rows:
+                    hay = f"{row.get('title', '')} {row.get('desk', '')}".lower()
+                    if kw_toks and not any(t in hay for t in kw_toks):
+                        continue
+                    u = row.get("url") or ""
+                    if u and u not in seen_urls:
+                        seen_urls.add(u)
+                        candidates.append(
+                            _build_bank_candidate(
+                                bank_info,
+                                row.get("title") or "",
+                                row.get("company") or bank_name,
+                                row.get("location") or location,
+                                u,
+                                keyword,
+                                row.get("date_posted") or "Récemment",
+                                "Portail Direct",
                             )
                         )
+            except Exception:
+                pass
+
+        gh_slug = GREENHOUSE_BOARD_SLUGS.get(bank_info["id"])
+        if gh_slug:
+            try:
+                for item in await _query_greenhouse_board(session, bank_info, gh_slug, keyword, location):
+                    if item["url"] not in seen_urls:
+                        seen_urls.add(item["url"])
+                        candidates.append(item)
+            except Exception:
+                pass
+
+        query_str = f"{bank_name} {keyword}"
+        api_url = (
+            "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+            f"?keywords={urllib.parse.quote(query_str)}&location={urllib.parse.quote(location)}&start=0"
+        )
+        try:
+            resp = await session.get(api_url, timeout=7.0)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                for card in soup.select("li"):
+                    title_elem = card.select_one(".base-search-card__title")
+                    comp_elem = card.select_one(".base-search-card__subtitle")
+                    loc_elem = card.select_one(".job-search-card__location")
+                    link_elem = card.select_one("a.base-card__full-link")
+                    date_elem = card.select_one("time")
+                    if not title_elem or not link_elem:
+                        continue
+                    raw_title = title_elem.get_text(strip=True)
+                    company = comp_elem.get_text(strip=True) if comp_elem else bank_name
+                    job_loc = loc_elem.get_text(strip=True) if loc_elem else location
+                    raw_link = link_elem.get("href", "")
+                    date_posted = date_elem.get("datetime") if date_elem else "Récemment"
+                    if not is_finance_job(raw_title, company):
+                        continue
+                    item = _build_bank_candidate(
+                        bank_info, raw_title, company, job_loc, raw_link, keyword, date_posted, "LinkedIn Direct"
+                    )
+                    if item["url"] not in seen_urls:
+                        seen_urls.add(item["url"])
+                        candidates.append(item)
+        except Exception:
+            pass
+
+    if len(candidates) < 2:
+        try:
+            short_name = bank_name.split("(")[0].strip().split()[0].lower()
+            indeed_rows = await asyncio.to_thread(
+                _scrape_jobspy_sync,
+                f"{bank_name.split('(')[0].strip()} {keyword}",
+                location,
+                8,
+                720,
+                ["indeed"],
+            )
+            for row in indeed_rows:
+                comp = (row.get("company") or "").strip()
+                if short_name not in comp.lower():
+                    continue
+                row_url = row.get("url") or ""
+                if not row_url or row_url in seen_urls:
+                    continue
+                if not is_finance_job(row.get("title") or "", comp):
+                    continue
+                seen_urls.add(row_url)
+                candidates.append(
+                    _build_bank_candidate(
+                        bank_info,
+                        row.get("title") or "",
+                        comp or bank_name,
+                        row.get("location") or location,
+                        row_url,
+                        keyword,
+                        row.get("date_posted") or "Récemment",
+                        "Indeed Direct",
                     )
                 )
+        except Exception:
+            pass
 
-                candidates.append({
-                    "title": cleaned_title,
-                    "company": company,
-                    "location": job_loc,
-                    "desk": desk,
-                    "asset_class": asset_class,
-                    "contract_type": contract_type,
-                    "description": f"Poste en direct chez {company} sur le desk {desk} ({asset_class}). Postulez directement via le portail carrières officiel.",
-                    "requirements": "Master 1 Finance de marché EDHEC ou École d'Ingénieur. Maîtrise Python, modélisation quantitative, pricing d'actifs.",
-                    "url": clean_url,
-                    "bank_career_portal_url": bank_info.get("career_portal_url"),
-                    "bank_search_url": bank_info.get("search_url_template", "").format(query=urllib.parse.quote(keyword)),
-                    "salary_monthly": salary,
-                    "source": f"Portail Carrières {bank_name} (Direct)",
-                    "date_posted": date_posted,
-                    "start_date": start_date,
-                    "end_date": end_date,
-                    "duration_months": duration,
-                    "tags": f"{desk}, {asset_class}, {job_loc}, {bank_name}, Portail Direct",
-                    "bank_id": bank_info["id"],
-                    "bank_category": bank_info["category"]
-                })
-
-            return candidates
-
-    except Exception:
-        return []
+    return candidates
 
 
 async def search_bank_careers_live(

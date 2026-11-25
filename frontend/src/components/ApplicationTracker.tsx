@@ -10,15 +10,12 @@ import {
   AlertCircle,
   XCircle,
   Archive,
-  ChevronDown,
   LayoutGrid,
   ListFilter,
   Briefcase,
-  Mail,
-  Building,
-  Calendar,
   Download,
   GraduationCap,
+  Plus,
 } from 'lucide-react';
 import type { Application, ApplicationStatus, JobOffer } from '../types';
 
@@ -35,55 +32,41 @@ interface ApplicationTrackerProps {
 
 export const STATUS_CONFIG: Record<
   ApplicationStatus,
-  { label: string; bg: string; text: string; border: string; icon: React.ComponentType<{ className?: string }> }
+  { label: string; badgeClass: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   saved: {
     label: 'À postuler',
-    bg: 'bg-slate-50',
-    text: 'text-slate-700',
-    border: 'border-slate-300',
+    badgeClass: 'bg-[#fafafa] text-[#111818] border-[#e5e5e5]',
     icon: Clock,
   },
   applied: {
     label: 'Postulé',
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
+    badgeClass: 'bg-black text-white border-black',
     icon: Send,
   },
   follow_up_needed: {
-    label: 'Relance à faire',
-    bg: 'bg-amber-50',
-    text: 'text-amber-800',
-    border: 'border-amber-300',
+    label: 'Relance',
+    badgeClass: 'bg-[#f59e0b]/15 text-[#b45309] border-[#f59e0b]/40',
     icon: AlertCircle,
   },
   interviewing: {
-    label: 'Entretien en cours',
-    bg: 'bg-purple-50',
-    text: 'text-purple-700',
-    border: 'border-purple-200',
+    label: 'Entretien',
+    badgeClass: 'bg-[#16a34a]/10 text-[#16a34a] border-[#16a34a]/30',
     icon: Briefcase,
   },
   offer_received: {
-    label: 'Offre reçue / Accepté',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
+    label: 'Offre reçue',
+    badgeClass: 'bg-[#16a34a] text-white border-[#16a34a]',
     icon: CheckCircle2,
   },
   rejected: {
     label: 'Refusé',
-    bg: 'bg-rose-50',
-    text: 'text-rose-700',
-    border: 'border-rose-200',
+    badgeClass: 'bg-[#dc2626]/10 text-[#dc2626] border-[#dc2626]/30',
     icon: XCircle,
   },
   withdrawn: {
     label: 'Retiré',
-    bg: 'bg-slate-100',
-    text: 'text-slate-600',
-    border: 'border-slate-200',
+    badgeClass: 'bg-[#f4f4f5] text-[#6b7280] border-[#e5e5e5]',
     icon: Archive,
   },
 };
@@ -121,17 +104,15 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
     };
   };
 
-  // Filter applications
   const filteredApps = applications.filter((app) => {
+    const q = searchTerm.toLowerCase();
     const matchesSearch =
-      app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.job_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.desk.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (app.location && app.location.toLowerCase().includes(searchTerm.toLowerCase()));
-
+      app.company.toLowerCase().includes(q) ||
+      app.job_title.toLowerCase().includes(q) ||
+      app.desk.toLowerCase().includes(q) ||
+      (app.location && app.location.toLowerCase().includes(q));
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
     const matchesDesk = deskFilter === 'all' || app.desk === deskFilter;
-
     return matchesSearch && matchesStatus && matchesDesk;
   });
 
@@ -147,372 +128,216 @@ export const ApplicationTracker: React.FC<ApplicationTrackerProps> = ({
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Control Bar: Filters, Search & View Toggle */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-          {/* Search Input */}
-          <div className="relative flex-1 min-w-[220px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+    <div className="space-y-5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6b7280] pt-2">
+        PIPELINE & SUIVI DES CANDIDATURES ({applications.length})
+      </div>
+
+      {/* Control Bar */}
+      <div className="bg-white p-4 border border-[#e5e5e5] flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[260px]">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="w-3.5 h-3.5 text-[#9ca3af] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Rechercher banque, rôle, desk, lieu..."
+              placeholder="Filtrer banque, poste, desk, lieu..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition"
+              className="sq-input w-full pl-8"
             />
           </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center space-x-1">
-            <ListFilter className="w-4 h-4 text-slate-400 shrink-0" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">Tous les statuts ({applications.length})</option>
-              {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-                <option key={key} value={key}>
-                  {config.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="sq-input"
+          >
+            <option value="all">TOUS STATUTS ({applications.length})</option>
+            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+              <option key={key} value={key}>{cfg.label}</option>
+            ))}
+          </select>
 
-          {/* Desk Filter */}
-          {uniqueDesks.length > 0 && (
-            <select
-              value={deskFilter}
-              onChange={(e) => setDeskFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">Tous les desks</option>
-              {uniqueDesks.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            value={deskFilter}
+            onChange={(e) => setDeskFilter(e.target.value)}
+            className="sq-input"
+          >
+            <option value="all">TOUS DESKS</option>
+            {uniqueDesks.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
         </div>
 
-        {/* View Toggle & Export CSV */}
-        <div className="flex items-center space-x-2 border-l border-slate-200 pl-4">
-          {onExportCsv && (
-            <button
-              onClick={onExportCsv}
-              className="px-2.5 py-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 border border-slate-200 transition"
-              title="Exporter les candidatures en CSV"
-            >
-              <Download className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">Export CSV</span>
-            </button>
-          )}
-
-          <div className="bg-slate-100 p-0.5 rounded-lg flex items-center">
+        <div className="flex items-center gap-2">
+          <div className="flex border border-[#e5e5e5]">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md text-xs font-medium transition ${
-                viewMode === 'table' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Vue Tableau"
+              className={`sq-btn border-0 ${viewMode === 'table' ? 'sq-btn-primary' : ''}`}
             >
-              <ListFilter className="w-4 h-4" />
+              <ListFilter className="w-3.5 h-3.5" />
+              TABLEAU
             </button>
             <button
               onClick={() => setViewMode('kanban')}
-              className={`p-1.5 rounded-md text-xs font-medium transition ${
-                viewMode === 'kanban' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Vue Kanban"
+              className={`sq-btn border-0 ${viewMode === 'kanban' ? 'sq-btn-primary' : ''}`}
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5" />
+              KANBAN
             </button>
           </div>
+
+          {onExportCsv && (
+            <button onClick={onExportCsv} className="sq-btn">
+              <Download className="w-3.5 h-3.5" />
+              CSV
+            </button>
+          )}
+
+          <button onClick={onNewApplication} className="sq-btn sq-btn-primary">
+            <Plus className="w-3.5 h-3.5" />
+            NOUVELLE
+          </button>
         </div>
       </div>
 
-      {/* Render Empty State if no apps */}
-      {filteredApps.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-          <Building className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-800">Aucune candidature correspondante</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Vous n'avez pas encore de candidature pour ces filtres. Ajoutez-en une manuellement ou importez depuis le scraper d'offres.
-          </p>
-          <button
-            onClick={onNewApplication}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition"
-          >
-            Ajouter une première candidature
-          </button>
-        </div>
-      ) : viewMode === 'table' ? (
-        /* TABLE VIEW */
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4">Établissement & Rôle</th>
-                  <th className="py-3.5 px-4">Desk / Marché</th>
-                  <th className="py-3.5 px-4">Lieu</th>
-                  <th className="py-3.5 px-4">Période Stage</th>
-                  <th className="py-3.5 px-4">Statut</th>
-                  <th className="py-3.5 px-4">Date Envoi</th>
-                  <th className="py-3.5 px-4">Relance / Échéance</th>
-                  <th className="py-3.5 px-4">Gratification</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+      {/* TABLE VIEW */}
+      {viewMode === 'table' ? (
+        <div className="bg-white border border-[#e5e5e5] overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#e5e5e5] bg-[#fafafa] text-[10px] font-bold uppercase tracking-[0.1em] text-[#6b7280]">
+                <th className="py-3 px-4">Entreprise & Poste</th>
+                <th className="py-3 px-4">Desk / Lieu</th>
+                <th className="py-3 px-4">Statut</th>
+                <th className="py-3 px-4">Dates</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#e5e5e5]">
+              {filteredApps.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-[12px] text-[#6b7280]">
+                    Aucune candidature enregistrée.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredApps.map((app) => {
-                  const statusConf = STATUS_CONFIG[app.status] || STATUS_CONFIG.applied;
-                  const StatusIcon = statusConf.icon;
+              ) : (
+                filteredApps.map((app) => {
+                  const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG.saved;
                   const isFollowUpDue =
-                    app.status === 'follow_up_needed' ||
-                    (app.follow_up_date && new Date(app.follow_up_date) <= new Date());
+                    app.follow_up_date &&
+                    app.status === 'applied' &&
+                    new Date(app.follow_up_date) <= new Date();
 
                   return (
-                    <tr key={app.id} className="hover:bg-blue-50/40 transition-colors group">
-                      {/* Company & Title */}
-                      <td className="py-3.5 px-4 font-medium text-slate-900">
-                        <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-                          {app.company}
+                    <tr key={app.id} className="hover:bg-[#fafafa] transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-[13px] text-[#111818]">{app.company}</div>
+                        <div className="text-[12px] text-[#6b7280]">{app.job_title}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-[11px] font-semibold text-[#111818]">{app.desk}</div>
+                        <div className="text-[11px] text-[#6b7280]">{app.location}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <select
+                          value={app.status}
+                          onChange={(e) => onUpdateStatus(app.id, e.target.value as ApplicationStatus)}
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 border cursor-pointer outline-none ${cfg.badgeClass}`}
+                        >
+                          {Object.entries(STATUS_CONFIG).map(([key, c]) => (
+                            <option key={key} value={key} className="bg-white text-black">
+                              {c.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-3 px-4 tabular-nums text-[11px] text-[#6b7280]">
+                        <div>Envoi : {app.applied_date || '—'}</div>
+                        <div className={isFollowUpDue ? 'text-[#b45309] font-bold' : ''}>
+                          Relance : {app.follow_up_date || '—'}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex items-center gap-1">
                           {app.application_url && (
                             <a
                               href={app.application_url}
                               target="_blank"
-                              rel="noreferrer"
-                              className="text-slate-400 hover:text-blue-600 flex items-center gap-1"
-                              title="Ouvrir le portail d'offre vérifié"
+                              rel="noopener noreferrer"
+                              className="sq-btn py-1 px-2 text-[10px]"
+                              title="Ouvrir l'annonce"
                             >
                               <ExternalLink className="w-3 h-3" />
-                              <span className="text-[10px] text-emerald-600 font-mono">200 OK</span>
                             </a>
                           )}
-                        </div>
-                        <div className="text-slate-500 text-[11px] font-normal truncate max-w-xs">
-                          {app.job_title}
-                        </div>
-                      </td>
-
-                      {/* Desk */}
-                      <td className="py-3.5 px-4">
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                          {app.desk}
-                        </span>
-                      </td>
-
-                      {/* Location */}
-                      <td className="py-3.5 px-4 text-slate-600">{app.location || 'Paris'}</td>
-
-                      {/* Période Stage */}
-                      <td className="py-3.5 px-4 font-mono-numbers text-slate-700">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-800 text-[11px] flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-blue-600" />
-                            {app.offer?.start_date || 'Juin 2027'}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            → {app.offer?.end_date || 'Déc. 2027'} ({app.offer?.duration_months || '6 mois'})
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Status Selector */}
-                      <td className="py-3.5 px-4">
-                        <div className="relative inline-block">
-                          <select
-                            value={app.status}
-                            onChange={(e) => onUpdateStatus(app.id, e.target.value as ApplicationStatus)}
-                            className={`appearance-none text-[11px] font-semibold pl-6 pr-6 py-1 rounded-full border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${statusConf.bg} ${statusConf.text} ${statusConf.border}`}
-                          >
-                            {Object.entries(STATUS_CONFIG).map(([val, conf]) => (
-                              <option key={val} value={val}>
-                                {conf.label}
-                              </option>
-                            ))}
-                          </select>
-                          <StatusIcon className={`w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none ${statusConf.text}`} />
-                          <ChevronDown className={`w-2.5 h-2.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${statusConf.text}`} />
-                        </div>
-                      </td>
-
-                      {/* Applied Date */}
-                      <td className="py-3.5 px-4 font-mono-numbers text-slate-600">
-                        {app.applied_date || '-'}
-                      </td>
-
-                      {/* Follow-up / Relance */}
-                      <td className="py-3.5 px-4 font-mono-numbers">
-                        {app.follow_up_date ? (
-                          <span
-                            className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                              isFollowUpDue ? 'text-amber-700 font-semibold' : 'text-slate-500'
-                            }`}
-                          >
-                            {isFollowUpDue && <AlertCircle className="w-3 h-3 text-amber-600" />}
-                            {app.follow_up_date}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
-                      </td>
-
-                      {/* Salary */}
-                      <td className="py-3.5 px-4 font-mono-numbers font-medium text-slate-700">
-                        {app.salary_monthly ? `${app.salary_monthly} €/m` : '-'}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end space-x-1.5 opacity-80 group-hover:opacity-100 transition">
-                          {onOpenOfferPrep && (
-                            <button
-                              onClick={() => onOpenOfferPrep(getOfferFromApp(app))}
-                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100/60 rounded"
-                              title="Guide d'entretien desk & Score ATS"
-                            >
-                              <GraduationCap className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                           <button
                             onClick={() => onDirectApply(app)}
-                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100/60 rounded"
-                            title="Générer email / pitch de candidature"
+                            className="sq-btn py-1 px-2 text-[10px]"
+                            title="Pitch & Relance"
                           >
-                            <Mail className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => onEditApplication(app)}
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded"
-                            title="Modifier les détails"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => onDeleteApplication(app.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded"
-                            title="Supprimer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        /* KANBAN BOARD VIEW */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          {kanbanColumns.map((colStatus) => {
-            const conf = STATUS_CONFIG[colStatus];
-            const StatusIcon = conf.icon;
-            const colApps = filteredApps.filter((a) => a.status === colStatus);
-
-            return (
-              <div
-                key={colStatus}
-                className="bg-slate-100/70 rounded-xl p-3 border border-slate-200/80 flex flex-col min-h-[480px]"
-              >
-                {/* Column Header */}
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
-                  <div className="flex items-center space-x-1.5">
-                    <StatusIcon className={`w-3.5 h-3.5 ${conf.text}`} />
-                    <span className="text-xs font-bold text-slate-800">{conf.label}</span>
-                  </div>
-                  <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200">
-                    {colApps.length}
-                  </span>
-                </div>
-
-                {/* Cards in Column */}
-                <div className="flex-1 space-y-2.5 overflow-y-auto">
-                  {colApps.map((app) => (
-                    <div
-                      key={app.id}
-                      className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs hover:shadow-xs transition"
-                    >
-                      <div className="flex items-start justify-between gap-1">
-                        <div className="font-semibold text-xs text-slate-900 leading-snug">
-                          {app.company}
-                        </div>
-                        {app.application_url && (
-                          <a
-                            href={app.application_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-slate-400 hover:text-blue-600 flex items-center gap-0.5"
-                            title="Lien vérifié 200 OK"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-
-                      <div className="text-[11px] text-slate-600 mt-1 line-clamp-2 leading-relaxed font-normal">
-                        {app.job_title}
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="px-1.5 py-0.5 bg-slate-50 border border-slate-200 text-slate-600 rounded text-[10px]">
-                          {app.desk}
-                        </span>
-                        {app.salary_monthly && (
-                          <span className="px-1.5 py-0.5 bg-blue-50/70 border border-blue-200 text-blue-700 rounded text-[10px] font-mono-numbers">
-                            {app.salary_monthly} €
-                          </span>
-                        )}
-                      </div>
-
-                      {app.follow_up_date && (
-                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
-                          <span className="flex items-center gap-1 font-mono-numbers">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            Relance: {app.follow_up_date}
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Card Bottom Actions */}
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => onDirectApply(app)}
-                            className="text-[10px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                          >
-                            <Send className="w-2.5 h-2.5" /> Postuler
+                            <Send className="w-3 h-3" />
                           </button>
                           {onOpenOfferPrep && (
                             <button
                               onClick={() => onOpenOfferPrep(getOfferFromApp(app))}
-                              className="text-[10px] text-slate-500 hover:text-blue-600 flex items-center gap-0.5"
-                              title="Guide d'entretien desk & Score ATS"
+                              className="sq-btn py-1 px-2 text-[10px]"
+                              title="Prépa entretien"
                             >
-                              <GraduationCap className="w-2.5 h-2.5 text-blue-600" /> Entretien
+                              <GraduationCap className="w-3 h-3" />
                             </button>
                           )}
-                        </div>
-                        <div className="flex items-center space-x-1">
                           <button
                             onClick={() => onEditApplication(app)}
-                            className="p-1 text-slate-400 hover:text-slate-700"
+                            className="sq-btn py-1 px-2 text-[10px]"
+                            title="Modifier"
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => onDeleteApplication(app.id)}
-                            className="p-1 text-slate-400 hover:text-rose-600"
+                            className="sq-btn py-1 px-2 text-[10px] hover:text-[#dc2626]"
+                            title="Supprimer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* KANBAN VIEW */
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {kanbanColumns.map((colStatus) => {
+            const cfg = STATUS_CONFIG[colStatus];
+            const colApps = filteredApps.filter((a) => a.status === colStatus);
+            return (
+              <div key={colStatus} className="bg-[#fafafa] border border-[#e5e5e5] flex flex-col min-h-[380px]">
+                <div className="p-2.5 border-b border-[#e5e5e5] bg-white flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#111818]">
+                    {cfg.label}
+                  </span>
+                  <span className="text-[10px] font-bold tabular-nums text-[#6b7280]">
+                    {colApps.length}
+                  </span>
+                </div>
+                <div className="p-2 space-y-2 flex-1">
+                  {colApps.map((app) => (
+                    <div
+                      key={app.id}
+                      onClick={() => onEditApplication(app)}
+                      className="bg-white border border-[#e5e5e5] hover:border-black p-2.5 cursor-pointer space-y-1.5"
+                    >
+                      <div className="font-bold text-[12px] text-[#111818] truncate">{app.company}</div>
+                      <div className="text-[11px] text-[#6b7280] line-clamp-2">{app.job_title}</div>
+                      <div className="text-[9px] uppercase tracking-wider text-[#9ca3af] tabular-nums">
+                        {app.location} {app.applied_date ? `· ${app.applied_date}` : ''}
                       </div>
                     </div>
                   ))}

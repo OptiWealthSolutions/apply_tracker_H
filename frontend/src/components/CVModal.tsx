@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  X,
-  FileText,
-  Download,
-  ExternalLink,
-  Upload,
-  CheckCircle2,
-  HardDrive,
-  Calendar,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
+import { X, FileText, Download, ExternalLink, Upload, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import type { CVInfo } from '../types';
 import { api } from '../api/client';
 
@@ -20,21 +9,23 @@ interface CVModalProps {
 }
 
 export const CVModal: React.FC<CVModalProps> = ({ isOpen, onClose }) => {
-  const [cvInfo, setCvInfo] = useState<CVInfo | null>(null);
+  const [cvList, setCvList] = useState<CVInfo[]>([]);
+  const [selectedVariant, setSelectedVariant] = useState<'trading' | 'buyside'>('trading');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadCvInfo = async () => {
+  const loadCvs = async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const data = await api.getCVInfo();
-      setCvInfo(data);
-    } catch (e: any) {
-      setErrorMessage(e?.message || 'Erreur lors du chargement des informations du CV');
+      const list = await api.getCVList();
+      setCvList(list);
+    } catch (e: unknown) {
+      setErrorMessage(e instanceof Error ? e.message : 'Erreur lors du chargement des CVs');
     } finally {
       setIsLoading(false);
     }
@@ -42,213 +33,197 @@ export const CVModal: React.FC<CVModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      loadCvInfo();
-      setUploadSuccess(false);
+      loadCvs();
+      setStatusMsg(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const activeCv =
+    cvList.find((c) => c.variant === selectedVariant) || cvList[0] || null;
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
       setErrorMessage('Veuillez sélectionner un fichier PDF valide.');
       return;
     }
-
     setIsUploading(true);
     setErrorMessage(null);
-    setUploadSuccess(false);
-
+    setStatusMsg(null);
     try {
-      const updated = await api.uploadCV(file);
-      setCvInfo(updated);
-      setUploadSuccess(true);
-      setTimeout(() => setUploadSuccess(false), 3000);
-    } catch (e: any) {
-      setErrorMessage(e?.message || "Erreur lors de l'upload du fichier");
+      await api.uploadCV(file, selectedVariant);
+      await loadCvs();
+      setStatusMsg(`Variante "${selectedVariant === 'buyside' ? 'CV B · Buy-Side' : 'CV A · Trading'}" mise à jour.`);
+    } catch (e: unknown) {
+      setErrorMessage(e instanceof Error ? e.message : "Erreur lors de l'upload");
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)} Mo`;
+  const handleRegenerate = async () => {
+    if (!window.confirm('Remplacer votre CV PDF actuel par 2 versions ATS générées automatiquement ?')) {
+      return;
+    }
+    setIsRegenerating(true);
+    setErrorMessage(null);
+    setStatusMsg(null);
+    try {
+      const updated = await api.regenerateCVVariants();
+      setCvList(updated);
+      setStatusMsg('Les 2 variantes ATS-safe (Trading & Buy-Side) ont été générées.');
+    } catch (e: unknown) {
+      setErrorMessage(e instanceof Error ? e.message : 'Erreur lors de la régénération');
+    } finally {
+      setIsRegenerating(false);
+    }
   };
 
+  const formatSize = (bytes: number) =>
+    bytes < 1024 ? `${bytes} o` : `${(bytes / 1024).toFixed(1)} Ko`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in duration-200">
-        {/* Header */}
-        <div className="px-6 py-4.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
-              <FileText className="w-5 h-5" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-4">
+      <div className="bg-white border border-black w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#e5e5e5] bg-[#fafafa] flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#6b7280]">
+              2 VARIANTES DÉDIÉES · ROUTAGE AUTOMATIQUE PAR DESK
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                CV Candidat Hébergé en Base de Données
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  SQLite Live
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500">
-                Léo Lombardini — Track Financial Markets (EDHEC) / Mathématiques & Économie (ENS D2)
-              </p>
-            </div>
+            <h2 className="text-[16px] font-bold text-[#111818]">Mes 2 CVs Spécialisés</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={handleRegenerate} disabled={isRegenerating} className="sq-btn">
+              <RefreshCw className={`w-3.5 h-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
+              <span>{isRegenerating ? 'GÉNÉRATION...' : 'GÉNÉRER 2 CVs ATS'}</span>
+            </button>
+            <button onClick={onClose} className="sq-btn p-1.5">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Content Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-xs flex-1">
-          {/* Metadata Card */}
-          <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 border border-blue-200 rounded-xl p-4.5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <HardDrive className="w-4 h-4 text-blue-600" />
-                  <span>{isLoading ? 'Chargement...' : cvInfo ? cvInfo.filename : 'CV_Leo_Lombardini.pdf'}</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-slate-600 text-[11px]">
-                  <span className="flex items-center gap-1">
-                    <span className="font-semibold text-slate-800">Taille :</span>
-                    {cvInfo ? formatFileSize(cvInfo.file_size) : '392.5 Ko'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="font-semibold text-slate-800">Statut :</span>
-                    Actif en base locale
-                  </span>
-                  <span className="flex items-center gap-1 text-emerald-700 font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    Lien direct actif pour vos candidatures
-                  </span>
-                </div>
+        <div className="p-6 overflow-y-auto space-y-4">
+          {/* Variant Switcher */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => setSelectedVariant('trading')}
+              className={`p-3.5 border text-left cursor-pointer transition ${
+                selectedVariant === 'trading'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-[#fafafa] text-[#111818] border-[#e5e5e5] hover:border-black'
+              }`}
+            >
+              <div className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                VARIANTE A · MARCHÉS / DESK
               </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2.5">
-                <a
-                  href={api.getCVViewUrl()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg font-semibold text-xs flex items-center gap-1.5 shadow-xs transition"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Ouvrir en plein écran</span>
-                </a>
-                <a
-                  href={api.getCVDownloadUrl()}
-                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 shadow-xs transition"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Télécharger PDF</span>
-                </a>
+              <div className="text-[13px] font-bold mt-0.5">
+                Trading · Structuring · Sales FICC
               </div>
-            </div>
+            </button>
 
-            {/* Email Auto-link information */}
-            <div className="mt-4 pt-3 border-t border-blue-200/60 text-[11px] text-blue-800 flex items-center justify-between">
-              <span>
-                Ce CV est directement servi par le backend local et inclus dans le corps de vos e-mails de pitch (mailto) générés pour chaque offre.
-              </span>
-              <span className="font-mono text-[10px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded">
-                http://127.0.0.1:8000/api/cv/view
-              </span>
-            </div>
+            <button
+              onClick={() => setSelectedVariant('buyside')}
+              className={`p-3.5 border text-left cursor-pointer transition ${
+                selectedVariant === 'buyside'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-[#fafafa] text-[#111818] border-[#e5e5e5] hover:border-black'
+              }`}
+            >
+              <div className="text-[9px] font-bold uppercase tracking-wider opacity-75">
+                VARIANTE B · BUY-SIDE / GESTION
+              </div>
+              <div className="text-[13px] font-bold mt-0.5">
+                Asset Mgmt · Portfolio Mgmt · Hedge Fund
+              </div>
+            </button>
           </div>
-
-          {/* Upload New Version */}
-          <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-4">
-            <div>
-              <div className="font-bold text-slate-800 text-xs">Mettre à jour le fichier PDF</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
-                Importez une nouvelle version de votre CV pour actualiser automatiquement les liens de pitch et la base locale.
-              </div>
-            </div>
-
-            <div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="application/pdf"
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="px-4 py-2 bg-slate-900 hover:bg-black text-white font-semibold rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Upload en cours...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Remplacer le CV</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {uploadSuccess && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Nouveau CV sauvegardé avec succès dans la base de données SQLite !</span>
-            </div>
-          )}
 
           {errorMessage && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3 bg-[#dc2626]/10 border border-[#dc2626]/30 text-[#dc2626] text-[12px] flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
+          {statusMsg && (
+            <div className="p-3 bg-[#16a34a]/10 border border-[#16a34a]/30 text-[#16a34a] text-[12px] flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{statusMsg}</span>
+            </div>
+          )}
 
-          {/* Live In-Modal PDF Viewer */}
-          <div className="space-y-2">
-            <div className="font-semibold text-slate-700 text-xs flex items-center justify-between">
-              <span>Aperçu en direct du document :</span>
-              <span className="text-slate-400 text-[11px]">Rendu natif PDF</span>
+          {isLoading ? (
+            <div className="py-8 text-center text-[12px] text-[#6b7280]">Chargement...</div>
+          ) : activeCv ? (
+            <div className="sq-card p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 border border-[#e5e5e5] bg-white flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-black" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-[#111818] truncate">{activeCv.filename}</div>
+                    <div className="text-[11px] text-[#6b7280] tabular-nums">
+                      {activeCv.label} · {formatSize(activeCv.file_size)}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={api.getCVViewUrl(selectedVariant)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sq-btn"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    VOIR
+                  </a>
+                  <a
+                    href={api.getCVDownloadUrl(selectedVariant)}
+                    download={activeCv.filename}
+                    className="sq-btn sq-btn-primary"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    TÉLÉCHARGER
+                  </a>
+                </div>
+              </div>
+
+              <div className="border border-[#e5e5e5] h-[300px] bg-white">
+                <iframe
+                  key={`${selectedVariant}-${activeCv.id}`}
+                  src={`${api.getCVViewUrl(selectedVariant)}#toolbar=0`}
+                  title="Aperçu CV"
+                  className="w-full h-full border-0"
+                />
+              </div>
             </div>
-            <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-100 shadow-inner h-[440px]">
-              <iframe
-                src={`${api.getCVViewUrl()}#toolbar=0&navpanes=0`}
-                className="w-full h-full border-0"
-                title="Aperçu CV Léo Lombardini"
-              />
-            </div>
+          ) : null}
+
+          <div className="flex items-center justify-between pt-2 border-t border-[#e5e5e5]">
+            <span className="text-[11px] text-[#6b7280]">
+              Remplacer la variante sélectionnée ({selectedVariant === 'buyside' ? 'CV B' : 'CV A'}) :
+            </span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="sq-btn"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {isUploading ? 'ENVOI...' : 'UPLOAD PDF PERSONNALISÉ'}
+            </button>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-          <span className="text-[11px] text-slate-500">
-            Hébergement binaire Blob SQLite — AlphaTracker Local
-          </span>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-200/60 transition"
-          >
-            Fermer
-          </button>
         </div>
       </div>
     </div>

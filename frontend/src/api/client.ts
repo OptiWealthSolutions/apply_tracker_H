@@ -17,11 +17,51 @@ import type {
   CoverLetterAuditResponse,
   FirmInterviewExpectation,
   EducationalResource,
+  DigestResponse,
+  SuggestedBoutique,
 } from '../types';
 
 const API_BASE = '/api';
 
 export const api = {
+  // Daily Digest & Qwen3 + Ridge Engine
+  async getDailyDigest(
+    windowDays: number = 7,
+    startPeriod: string = 'all',
+    excludePureQuant: boolean = true,
+    atsPlatform: string = 'all',
+    noLoginOnly: boolean = false
+  ): Promise<DigestResponse> {
+    const params = new URLSearchParams({
+      window_days: String(windowDays),
+      start_period: startPeriod,
+      exclude_pure_quant: String(excludePureQuant),
+      ats_platform: atsPlatform,
+      no_login_only: String(noLoginOnly),
+    });
+    const res = await fetch(`${API_BASE}/digest?${params.toString()}`);
+    if (!res.ok) throw new Error('Erreur lors du chargement du Daily Digest');
+    return res.json();
+  },
+
+  async recalibrateEmbeddings(): Promise<{ status: string; engine_name: string; ollama_active: boolean; ridge_samples: number; evaluated: number }> {
+    const res = await fetch(`${API_BASE}/embeddings/recalibrate`, { method: 'POST' });
+    if (!res.ok) throw new Error('Erreur lors de la recalibration Qwen3 + Ridge');
+    return res.json();
+  },
+
+  async dismissOffer(offerId: number): Promise<{ id: number; is_dismissed: boolean }> {
+    const res = await fetch(`${API_BASE}/offers/${offerId}/dismiss`, { method: 'POST' });
+    if (!res.ok) throw new Error("Erreur lors du rejet de l'offre");
+    return res.json();
+  },
+
+  async restoreOffer(offerId: number): Promise<{ id: number; is_dismissed: boolean }> {
+    const res = await fetch(`${API_BASE}/offers/${offerId}/restore`, { method: 'POST' });
+    if (!res.ok) throw new Error("Erreur lors de la restauration de l'offre");
+    return res.json();
+  },
+
   // Real Live Synchronization & Link Verification Engine
   async syncRealOffers(): Promise<SyncResponse> {
     const res = await fetch(`${API_BASE}/sync`, { method: 'POST' });
@@ -29,14 +69,43 @@ export const api = {
     return res.json();
   },
 
-  async verifyAllLinks(): Promise<{ status: string; total_checked: number; valid_links: number; dead_links: number }> {
+  async verifyAllLinks(): Promise<{ status: string; total_checked: number; valid_links: number; dead_links: number; protected_skipped?: number }> {
     const res = await fetch(`${API_BASE}/offers/verify-links`, { method: 'POST' });
     if (!res.ok) throw new Error('Erreur lors de la vérification des liens');
     return res.json();
   },
 
+  async getAtsHealth(): Promise<{ total_boards: number; quarantined_boards: string[] }> {
+    const res = await fetch(`${API_BASE}/ats/health`);
+    if (!res.ok) throw new Error('Erreur lors de la récupération du statut ATS');
+    return res.json();
+  },
+
   getExportCsvUrl(): string {
     return `${API_BASE}/export/csv`;
+  },
+
+  getExportOffersCsvUrl(params?: {
+    query?: string;
+    desk?: string;
+    location?: string;
+    ats_platform?: string;
+    no_login_only?: boolean;
+    start_period?: string;
+    exclude_pure_quant?: boolean;
+    only_favorites?: boolean;
+  }): string {
+    const queryParams = new URLSearchParams();
+    if (params?.query) queryParams.append('query', params.query);
+    if (params?.desk && params.desk !== 'all') queryParams.append('desk', params.desk);
+    if (params?.location && params.location !== 'all') queryParams.append('location', params.location);
+    if (params?.ats_platform && params.ats_platform !== 'all') queryParams.append('ats_platform', params.ats_platform);
+    if (params?.no_login_only) queryParams.append('no_login_only', 'true');
+    if (params?.start_period && params.start_period !== 'all') queryParams.append('start_period', params.start_period);
+    if (params?.exclude_pure_quant !== undefined) queryParams.append('exclude_pure_quant', String(params.exclude_pure_quant));
+    if (params?.only_favorites) queryParams.append('only_favorites', 'true');
+    const qs = queryParams.toString();
+    return qs ? `${API_BASE}/export/offers/csv?${qs}` : `${API_BASE}/export/offers/csv`;
   },
 
   // Job Offers
@@ -161,7 +230,18 @@ export const api = {
   },
 
   // Pitch & Direct Apply Generator
-  async generatePitch(data: { offer_id?: number; job_title: string; company: string; desk: string }): Promise<ApplyPitchResponse> {
+  async generatePitch(data: {
+    offer_id?: number;
+    job_title: string;
+    company: string;
+    desk: string;
+    direct_email?: string;
+    location?: string;
+    contact_name?: string;
+    offer_description?: string;
+    offer_requirements?: string;
+    use_llm?: boolean;
+  }): Promise<ApplyPitchResponse> {
     const res = await fetch(`${API_BASE}/pitch/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -205,29 +285,53 @@ export const api = {
     return res.json();
   },
 
-  // CV Storage & Streaming
-  async getCVInfo(): Promise<CVInfo> {
-    const res = await fetch(`${API_BASE}/cv/info`);
+  // CV Storage & 2-Variant Streaming
+  async getCVList(): Promise<CVInfo[]> {
+    const res = await fetch(`${API_BASE}/cv/list`);
+    if (!res.ok) throw new Error('Erreur lors du chargement des CVs');
+    return res.json();
+  },
+
+  async regenerateCVVariants(): Promise<CVInfo[]> {
+    const res = await fetch(`${API_BASE}/cv/regenerate-variants`, { method: 'POST' });
+    if (!res.ok) throw new Error('Erreur lors de la régénération des CVs');
+    return res.json();
+  },
+
+  async getCVInfo(variant?: string): Promise<CVInfo> {
+    const url = variant ? `${API_BASE}/cv/info?variant=${encodeURIComponent(variant)}` : `${API_BASE}/cv/info`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Erreur lors de la récupération des informations du CV');
     return res.json();
   },
 
-  getCVViewUrl(): string {
-    return `${API_BASE}/cv/view`;
+  getCVViewUrl(variant?: string): string {
+    return variant ? `${API_BASE}/cv/view?variant=${encodeURIComponent(variant)}` : `${API_BASE}/cv/view`;
   },
 
-  getCVDownloadUrl(): string {
-    return `${API_BASE}/cv/download`;
+  getCVDownloadUrl(variant?: string): string {
+    return variant ? `${API_BASE}/cv/download?variant=${encodeURIComponent(variant)}` : `${API_BASE}/cv/download`;
   },
 
-  async uploadCV(file: File): Promise<CVInfo> {
+  async uploadCV(file: File, variant: string = 'trading'): Promise<CVInfo> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_BASE}/cv/upload`, {
+    const res = await fetch(`${API_BASE}/cv/upload?variant=${encodeURIComponent(variant)}`, {
       method: 'POST',
       body: formData,
     });
     if (!res.ok) throw new Error("Erreur lors de l'upload du CV");
+    return res.json();
+  },
+
+  // WTTJ & JobTeaser EDHEC Importers
+  async importJobteaserOrWttjText(rawText: string, source: string = 'JobTeaser EDHEC'): Promise<{ status: string; source: string; added: number; total_processed: number }> {
+    const res = await fetch(`${API_BASE}/import/jobteaser-text`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw_text: rawText, source }),
+    });
+    if (!res.ok) throw new Error("Aucune offre détectée dans le texte collé");
     return res.json();
   },
 
@@ -303,6 +407,29 @@ export const api = {
     const url = queryString ? `${API_BASE}/resources?${queryString}` : `${API_BASE}/resources`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Erreur lors du chargement des ressources de formation');
+    return res.json();
+  },
+
+  async getSuggestedBoutiques(category?: string, hub?: string): Promise<SuggestedBoutique[]> {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.append('category', category);
+    if (hub && hub !== 'all') params.append('hub', hub);
+    const qs = params.toString();
+    const url = qs ? `${API_BASE}/suggestions?${qs}` : `${API_BASE}/suggestions`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Erreur lors du chargement des suggestions de boutiques');
+    return res.json();
+  },
+
+  async enrichSuggestedBoutiques(): Promise<{
+    status: string;
+    total_boutiques: number;
+    verified_emails_count: number;
+    inferred_emails_count: number;
+    with_key_people_count: number;
+  }> {
+    const res = await fetch(`${API_BASE}/suggestions/enrich`, { method: 'POST' });
+    if (!res.ok) throw new Error('Erreur lors du scraping des contacts et liens LinkedIn');
     return res.json();
   },
 };

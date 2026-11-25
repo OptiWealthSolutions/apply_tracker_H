@@ -1,51 +1,53 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { DailyDigestView } from './components/DailyDigestView';
+import { OffersView } from './components/OffersView';
+import { SuggestionsView } from './components/SuggestionsView';
 import { ApplicationTracker } from './components/ApplicationTracker';
-import { JobScraperView } from './components/JobScraperView';
-import { KnnRecommenderView } from './components/KnnRecommenderView';
-import { AnalyticsView } from './components/AnalyticsView';
+import { PrepAndCvView } from './components/PrepAndCvView';
+import { ProfileAndAnalyticsView } from './components/ProfileAndAnalyticsView';
 import { ApplicationModal } from './components/ApplicationModal';
-import { PreferencesModal } from './components/PreferencesModal';
-import { PreferencesView } from './components/PreferencesView';
-import { CVAuditView } from './components/CVAuditView';
-import { ResourcesView } from './components/ResourcesView';
 import { ApplyActionModal } from './components/ApplyActionModal';
-import { BankCareerSearchView } from './components/BankCareerSearchView';
 import { CVModal } from './components/CVModal';
 import { OfferPrepModal } from './components/OfferPrepModal';
-import { InterviewPrepView } from './components/InterviewPrepView';
 import type {
   Application,
   JobOffer,
   UserProfile,
-  RecommendationResponse,
   AnalyticsData,
   ApplicationStatus,
+  DigestResponse,
+  SuggestedBoutique,
 } from './types';
 import { api } from './api/client';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState<string>('tracker');
+  const [currentTab, setCurrentTab] = useState<string>('digest');
+  const [digest, setDigest] = useState<DigestResponse | null>(null);
+  const [windowDays, setWindowDays] = useState<number>(7);
+  const [startFilter, setStartFilter] = useState<string>('all');
+  const [excludePureQuant, setExcludePureQuant] = useState<boolean>(true);
+  const [digestPlatformFilter, setDigestPlatformFilter] = useState<string>('all');
+  const [digestNoLoginOnly, setDigestNoLoginOnly] = useState<boolean>(false);
   const [applications, setApplications] = useState<Application[]>([]);
   const [offers, setOffers] = useState<JobOffer[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [atsHealth, setAtsHealth] = useState<{ total_boards: number; quarantined_boards: string[] } | null>(null);
 
   // Loading states
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDigestLoading, setIsDigestLoading] = useState(false);
+  const [digestError, setDigestError] = useState<string | null>(null);
+  const [isRecalibrating, setIsRecalibrating] = useState(false);
   const [isScraping, setIsScraping] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
-  const [isKnnLoading, setIsKnnLoading] = useState(false);
   const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
   const [syncBanner, setSyncBanner] = useState<string | null>(null);
 
   // Modals
   const [isAppModalOpen, setIsAppModalOpen] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
-  const [isPrefModalOpen, setIsPrefModalOpen] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [applyTargetOffer, setApplyTargetOffer] = useState<JobOffer | null>(null);
   const [applyTargetApplication, setApplyTargetApplication] = useState<Application | null>(null);
@@ -53,7 +55,32 @@ export function App() {
   const [isOfferPrepOpen, setIsOfferPrepOpen] = useState(false);
   const [prepTargetOffer, setPrepTargetOffer] = useState<JobOffer | null>(null);
 
-  // Fetch applications
+  const loadDigest = useCallback(
+    async (
+      days: number = windowDays,
+      sFilter: string = startFilter,
+      exclQuant: boolean = excludePureQuant,
+      platFilter: string = digestPlatformFilter,
+      noLogin: boolean = digestNoLoginOnly
+    ) => {
+      setIsDigestLoading(true);
+      setDigestError(null);
+      try {
+        const data = await api.getDailyDigest(days, sFilter, exclQuant, platFilter, noLogin);
+        setDigest(data);
+        if (data.generated_at) {
+          setLastSyncTime((prev) => prev || data.generated_at);
+        }
+      } catch (err) {
+        console.error('Failed to load digest:', err);
+        setDigestError('Connexion au serveur AlphaTracker (port 8002) impossible. Vérifiez que le backend tourne.');
+      } finally {
+        setIsDigestLoading(false);
+      }
+    },
+    [windowDays, startFilter, excludePureQuant, digestPlatformFilter, digestNoLoginOnly]
+  );
+
   const loadApplications = useCallback(async () => {
     try {
       const data = await api.getApplications();
@@ -63,7 +90,6 @@ export function App() {
     }
   }, []);
 
-  // Fetch job offers
   const loadOffers = useCallback(async () => {
     try {
       const data = await api.getOffers({ only_verified: true });
@@ -73,7 +99,6 @@ export function App() {
     }
   }, []);
 
-  // Fetch user profile
   const loadProfile = useCallback(async () => {
     try {
       const data = await api.getProfile();
@@ -83,25 +108,15 @@ export function App() {
     }
   }, []);
 
-  // Fetch KNN recommendations
-  const loadRecommendations = useCallback(async () => {
-    setIsKnnLoading(true);
-    try {
-      const data = await api.getKnnRecommendations();
-      setRecommendations(data);
-    } catch (err) {
-      console.error('Failed to load KNN recommendations:', err);
-    } finally {
-      setIsKnnLoading(false);
-    }
-  }, []);
-
-  // Fetch Analytics
   const loadAnalytics = useCallback(async () => {
     setIsAnalyticsLoading(true);
     try {
-      const data = await api.getAnalytics();
+      const [data, health] = await Promise.all([
+        api.getAnalytics(),
+        api.getAtsHealth().catch(() => null),
+      ]);
       setAnalytics(data);
+      if (health) setAtsHealth(health);
     } catch (err) {
       console.error('Failed to load analytics:', err);
     } finally {
@@ -109,50 +124,107 @@ export function App() {
     }
   }, []);
 
-  // Master refresh
   const handleMasterRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        loadApplications(),
-        loadOffers(),
-        loadProfile(),
-        loadRecommendations(),
-        loadAnalytics(),
-      ]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [loadApplications, loadOffers, loadProfile, loadRecommendations, loadAnalytics]);
+    await Promise.all([
+      loadDigest(windowDays),
+      loadApplications(),
+      loadOffers(),
+      loadProfile(),
+      loadAnalytics(),
+    ]);
+  }, [loadDigest, windowDays, loadApplications, loadOffers, loadProfile, loadAnalytics]);
 
   useEffect(() => {
     handleMasterRefresh();
   }, [handleMasterRefresh]);
 
-  // Real-time synchronization
+  const handleChangeWindowDays = (days: number) => {
+    setWindowDays(days);
+    loadDigest(days, startFilter, excludePureQuant, digestPlatformFilter, digestNoLoginOnly);
+  };
+
+  const handleChangeStartFilter = (newFilter: string) => {
+    setStartFilter(newFilter);
+    loadDigest(windowDays, newFilter, excludePureQuant, digestPlatformFilter, digestNoLoginOnly);
+  };
+
+  const handleToggleExcludePureQuant = (val: boolean) => {
+    setExcludePureQuant(val);
+    loadDigest(windowDays, startFilter, val, digestPlatformFilter, digestNoLoginOnly);
+  };
+
+  const handleChangeDigestPlatform = (plat: string) => {
+    setDigestPlatformFilter(plat);
+    loadDigest(windowDays, startFilter, excludePureQuant, plat, digestNoLoginOnly);
+  };
+
+  const handleToggleDigestNoLogin = (val: boolean) => {
+    setDigestNoLoginOnly(val);
+    loadDigest(windowDays, startFilter, excludePureQuant, digestPlatformFilter, val);
+  };
+
+  const handleUpdateTargetStartPeriod = async (period: string) => {
+    try {
+      const saved = await api.updateProfile({ target_start_period: period });
+      setProfile(saved);
+      await api.recalibrateEmbeddings();
+      await Promise.all([loadDigest(windowDays, startFilter, excludePureQuant), loadOffers()]);
+      setSyncBanner(`Début cible mis à jour (${period}) et moteur Qwen3 + Ridge recalibré.`);
+      setTimeout(() => setSyncBanner(null), 4000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRecalibrate = async () => {
+    setIsRecalibrating(true);
+    try {
+      const res = await api.recalibrateEmbeddings();
+      await Promise.all([loadDigest(windowDays), loadOffers()]);
+      setSyncBanner(
+        `Qwen3 + Ridge recalibré sur ${res.evaluated} offres actives (${res.ridge_samples} signaux personnels).`
+      );
+      setTimeout(() => setSyncBanner(null), 5000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRecalibrating(false);
+    }
+  };
+
   const handleSyncRealOffers = async () => {
     setIsSyncing(true);
     setSyncBanner(null);
     try {
       const res = await api.syncRealOffers();
       setLastSyncTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
-      setSyncBanner(`${res.verified_valid} offres de stages réelles synchronisées avec liens vérifiés (HTTP 200).`);
-      await Promise.all([loadOffers(), loadRecommendations(), loadAnalytics()]);
+      setSyncBanner(`${res.verified_valid} offres actives synchronisées (${res.new_added} nouvelles) et scorées par Qwen3 + Ridge.`);
+      await Promise.all([loadDigest(windowDays), loadOffers(), loadAnalytics()]);
       setTimeout(() => setSyncBanner(null), 6000);
     } catch (err) {
       console.error('Sync failed:', err);
-      alert('Erreur lors de la synchronisation : vérifiez votre connexion réseau.');
     } finally {
       setIsSyncing(false);
     }
   };
 
-  // CSV Export
+  const handleVerifyLinks = async () => {
+    try {
+      const res = await api.verifyAllLinks();
+      await Promise.all([loadDigest(windowDays), loadOffers()]);
+      setSyncBanner(
+        `Vérification terminée : ${res.valid_links}/${res.total_checked} liens OK (${res.dead_links} morts purgés${res.protected_skipped ? `, ${res.protected_skipped} protégés anti-bot conservés` : ''}).`
+      );
+      setTimeout(() => setSyncBanner(null), 5000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleExportCsv = () => {
     window.open(api.getExportCsvUrl(), '_blank');
   };
 
-  // Application Handlers
   const handleUpdateStatus = async (id: number, newStatus: ApplicationStatus) => {
     try {
       const updated = await api.updateApplicationStatus(id, newStatus);
@@ -173,6 +245,7 @@ export function App() {
         setApplications((prev) => [created, ...prev]);
       }
       loadOffers();
+      loadDigest(windowDays);
       loadAnalytics();
     } catch (err) {
       console.error('Failed to save application:', err);
@@ -191,23 +264,11 @@ export function App() {
     }
   };
 
-  const handleEditApplication = (app: Application) => {
-    setEditingApplication(app);
-    setIsAppModalOpen(true);
-  };
-
-  const handleNewApplication = () => {
-    setEditingApplication(null);
-    setIsAppModalOpen(true);
-  };
-
-  // Scraper Handlers
   const handleScrapeSearch = async (keywords: string, location: string) => {
     setIsScraping(true);
     try {
       await api.scrapeSearch(keywords, location);
-      await loadOffers();
-      await loadRecommendations();
+      await Promise.all([loadOffers(), loadDigest(windowDays)]);
     } catch (err) {
       console.error('Scraping error:', err);
     } finally {
@@ -218,10 +279,11 @@ export function App() {
   const handleScrapeUrl = async (url: string) => {
     try {
       await api.scrapeUrl(url);
-      await loadOffers();
-      await loadRecommendations();
-    } catch (err) {
-      alert("Erreur lors de l'extraction de l'URL : lien inaccessible ou format non reconnu.");
+      await Promise.all([loadOffers(), loadDigest(windowDays)]);
+      setSyncBanner('Offre vérifiée et importée.');
+      setTimeout(() => setSyncBanner(null), 4000);
+    } catch {
+      alert("Lien inaccessible ou offre expirée.");
     }
   };
 
@@ -231,38 +293,84 @@ export function App() {
       setOffers((prev) =>
         prev.map((o) => (o.id === offerId ? { ...o, is_favorite: res.is_favorite } : o))
       );
+      loadDigest(windowDays);
     } catch (err) {
       console.error('Toggle favorite error:', err);
     }
   };
 
-  const handleAddOfferToTracker = async (offer: JobOffer) => {
+  const handleDismissOffer = async (offerId: number) => {
+    try {
+      await api.dismissOffer(offerId);
+      setOffers((prev) => prev.filter((o) => o.id !== offerId));
+      loadDigest(windowDays);
+    } catch (err) {
+      console.error('Dismiss offer error:', err);
+    }
+  };
+
+  const handleUndoDismiss = async (offerId: number) => {
+    try {
+      await api.restoreOffer(offerId);
+      await Promise.all([loadOffers(), loadDigest(windowDays)]);
+    } catch (err) {
+      console.error('Restore offer error:', err);
+    }
+  };
+
+  const createAppFromOffer = async (offer: JobOffer, status: ApplicationStatus) => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const followUp = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const followUp = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const created = await api.createApplication({
         offer_id: offer.id,
         company: offer.company,
         job_title: offer.title,
         desk: offer.desk,
         location: offer.location,
-        status: 'applied',
-        applied_date: today,
-        follow_up_date: followUp,
+        status,
+        applied_date: status === 'applied' ? today : undefined,
+        follow_up_date: status === 'applied' ? followUp : undefined,
         salary_monthly: offer.salary_monthly,
         application_url: offer.url,
-        notes: `Offre réelle vérifiée. Desk : ${offer.desk}.`,
+        notes: `${offer.desk} (${(offer.ats_platform || 'direct').toUpperCase()})`,
       });
       setApplications((prev) => [created, ...prev]);
       setOffers((prev) => prev.map((o) => (o.id === offer.id ? { ...o, is_applied: true } : o)));
+      loadDigest(windowDays);
       loadAnalytics();
-      setCurrentTab('tracker');
+      setSyncBanner(`${offer.company} — ${offer.title} enregistré (${status === 'applied' ? 'Postulé' : 'À postuler'}).`);
+      setTimeout(() => setSyncBanner(null), 4000);
     } catch (err) {
-      console.error('Failed to add offer to tracker:', err);
+      console.error(err);
     }
   };
 
-  // Direct Apply Action Modal Triggers
+  const handleQuickTrackBoutique = async (b: SuggestedBoutique) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const followUp = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const created = await api.createApplication({
+        company: b.name,
+        job_title: b.target_role,
+        desk: b.category,
+        location: b.location,
+        status: 'applied',
+        applied_date: today,
+        follow_up_date: followUp,
+        contact_email: b.spontaneous_email || undefined,
+        application_url: b.careers_url || b.website_url,
+        notes: `Candidature spontanée (${b.category}). ${b.leo_fit_angle}`,
+      });
+      setApplications((prev) => [created, ...prev]);
+      loadAnalytics();
+      setSyncBanner(`${b.name} ajouté au Tracker (candidature spontanée enregistrée).`);
+      setTimeout(() => setSyncBanner(null), 4000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDirectApplyFromOffer = (offer: JobOffer) => {
     setApplyTargetOffer(offer);
     setApplyTargetApplication(null);
@@ -275,224 +383,149 @@ export function App() {
     setIsApplyModalOpen(true);
   };
 
-  // Preferences save
-  const handleSavePreferences = async (updated: Partial<UserProfile>) => {
-    try {
-      const saved = await api.updateProfile(updated);
-      setProfile(saved);
-      loadRecommendations();
-    } catch (err) {
-      console.error('Failed to update preferences:', err);
-    }
-  };
-
   const followUpAlertCount = applications.filter(
     (a) =>
       a.status === 'follow_up_needed' ||
-      (a.follow_up_date && new Date(a.follow_up_date) <= new Date())
+      (a.follow_up_date && a.status === 'applied' && new Date(a.follow_up_date) <= new Date())
   ).length;
 
-  const handleOfferImported = (newOffer: JobOffer) => {
-    setOffers((prev) => {
-      const exists = prev.some((o) => o.id === newOffer.id || o.url === newOffer.url);
-      if (exists) return prev;
-      return [newOffer, ...prev];
-    });
-    setSyncBanner(`Offre "${newOffer.title}" (${newOffer.company}) importée avec succès dans vos offres.`);
-  };
-
-  const getHeaderMeta = () => {
-    switch (currentTab) {
-      case 'tracker':
-        return {
-          title: 'Tableau de Suivi des Candidatures',
-          subtitle:
-            'Gérez votre pipeline de stages en finance de marché avec statuts temps réel et relances.',
-        };
-      case 'bank-search':
-        return {
-          title: 'Portails Carrières Directs des Entreprises & Recherche Live',
-          subtitle:
-            'Interrogez en direct les plateformes officielles des banques d\'investissement, cabinets de conseil, Big 4 et fonds alternatifs.',
-        };
-      case 'cv-audit':
-        return {
-          title: 'Audit Qualité CV & Lettre de Motivation',
-          subtitle:
-            'Algorithme quantitatif d\'évaluation : formule Google XYZ, densité TF-IDF & salience des mots-clés, verbes d\'action et calibrage MD.',
-        };
-      case 'preferences':
-        return {
-          title: 'Préférences Professionnelles & Cartographie des Métiers',
-          subtitle:
-            'Cartographie intégrale des métiers en Finance de Marché, Corporate Finance, Private Equity, Asset Management, Audit, Conseil en Stratégie et Quant Tech.',
-        };
-      case 'scraper':
-        return {
-          title: 'Scraper de Marché & Google Search',
-          subtitle:
-            'Offres réelles vérifiées en direct (HTTP 200) sans aucun lien mort ou hardcodé.',
-        };
-      case 'knn':
-        return {
-          title: 'Conseiller KNN & Découverte Latente',
-          subtitle:
-            'Algorithme de plus proche voisin recommandant cibles directes et pépites de desks adjacents.',
-        };
-      case 'interview-prep':
-        return {
-          title: "Guide d'Entretien Technique Desk",
-          subtitle:
-            "Questions réelles posées par les Traders, démonstrations mathématiques, intuition des Grecs et réponses modèles.",
-        };
-      case 'resources':
-        return {
-          title: 'Attentes par Firme & Bibliothèque de Ressources',
-          subtitle:
-            'Phase 4 du Pipeline : Maîtrisez les attentes des banques d\'affaires, desks et fonds, et accédez aux meilleures vidéos, papers, livres et simulateurs.',
-        };
-      case 'analytics':
-        return {
-          title: 'Statistiques & Performance du Pipeline',
-          subtitle:
-            'Mesurez vos taux de conversion, relances critiques et répartition par spécialisation.',
-        };
-      default:
-        return {
-          title: 'AlphaTracker',
-          subtitle: 'Stages Finance de Marché',
-        };
-    }
-  };
-
-  const handleOpenOfferPrep = (offer: JobOffer) => {
-    setPrepTargetOffer(offer);
-    setIsOfferPrepOpen(true);
-  };
-
-  const headerMeta = getHeaderMeta();
-
   return (
-    <div className="flex h-screen bg-[#F8FAFC] text-slate-900 font-sans overflow-hidden">
-      {/* Institutional Navy Blue Sidebar */}
-      <Sidebar
+    <div className="min-h-screen bg-white text-[#111818] flex flex-col">
+      <Header
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         applicationsCount={applications.length}
-        profile={profile}
-        onOpenPreferences={() => setIsPrefModalOpen(true)}
+        followUpAlertCount={followUpAlertCount}
+        onSyncRealOffers={handleSyncRealOffers}
+        isSyncing={isSyncing}
+        onNewApplication={() => {
+          setEditingApplication(null);
+          setIsAppModalOpen(true);
+        }}
         onOpenCVModal={() => setIsCVModalOpen(true)}
+        lastSyncTime={lastSyncTime}
+        targetStartPeriod={profile?.target_start_period || 'Juin 2027'}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden bg-white">
-        <Header
-          title={headerMeta.title}
-          subtitle={headerMeta.subtitle}
-          onNewApplication={handleNewApplication}
-          onOpenPreferences={() => setCurrentTab('preferences')}
-          onOpenCVModal={() => setIsCVModalOpen(true)}
-          onRefresh={handleMasterRefresh}
-          isRefreshing={isRefreshing}
-          onSyncRealOffers={handleSyncRealOffers}
-          isSyncing={isSyncing}
-          onExportCsv={handleExportCsv}
-          followUpAlertCount={followUpAlertCount}
-          lastSyncTime={lastSyncTime}
-        />
+      {syncBanner && (
+        <div className="bg-black text-white px-6 py-2 text-[11px] font-semibold tracking-wide flex items-center justify-between border-b border-black">
+          <span>{syncBanner}</span>
+          <button
+            onClick={() => setSyncBanner(null)}
+            className="text-white hover:underline text-[10px] uppercase cursor-pointer"
+          >
+            FERMER
+          </button>
+        </div>
+      )}
 
-        {/* Real-time Sync Toast Notification */}
-        {syncBanner && (
-          <div className="bg-emerald-600 text-white px-6 py-2 text-xs font-semibold flex items-center justify-between shadow-sm animate-in slide-in-from-top duration-300">
-            <span>{syncBanner}</span>
-            <button
-              onClick={() => setSyncBanner(null)}
-              className="text-white hover:text-emerald-100 text-xs font-bold"
-            >
-              Fermer
-            </button>
-          </div>
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-5 md:px-10 pb-12 pt-4">
+        {currentTab === 'digest' && (
+          <DailyDigestView
+            digest={digest}
+            isLoading={isDigestLoading}
+            errorMessage={digestError}
+            windowDays={windowDays}
+            startFilter={startFilter}
+            excludePureQuant={excludePureQuant}
+            platformFilter={digestPlatformFilter}
+            noLoginOnly={digestNoLoginOnly}
+            targetStartPeriod={profile?.target_start_period || 'Juin 2027'}
+            onChangeWindowDays={handleChangeWindowDays}
+            onChangeStartFilter={handleChangeStartFilter}
+            onToggleExcludePureQuant={handleToggleExcludePureQuant}
+            onChangePlatformFilter={handleChangeDigestPlatform}
+            onToggleNoLoginOnly={handleToggleDigestNoLogin}
+            onUpdateTargetStartPeriod={handleUpdateTargetStartPeriod}
+            onRecalibrate={handleRecalibrate}
+            isRecalibrating={isRecalibrating}
+            onDirectApply={handleDirectApplyFromOffer}
+            onQuickApplied={(offer) => createAppFromOffer(offer, 'applied')}
+            onSaveToTracker={(offer) => createAppFromOffer(offer, 'saved')}
+            onDismissOffer={handleDismissOffer}
+            onUndoDismiss={handleUndoDismiss}
+            onToggleFavorite={handleToggleFavorite}
+            onOpenOffersTab={() => setCurrentTab('offers')}
+            onOpenTrackerTab={() => setCurrentTab('tracker')}
+          />
         )}
 
-        {/* Dynamic Body Content */}
-        <main className="flex-1 overflow-y-auto p-8 bg-slate-50/70">
-          <div className="max-w-7xl mx-auto">
-            {currentTab === 'tracker' && (
-              <ApplicationTracker
-                applications={applications}
-                onUpdateStatus={handleUpdateStatus}
-                onEditApplication={handleEditApplication}
-                onDeleteApplication={handleDeleteApplication}
-                onDirectApply={handleDirectApplyFromApplication}
-                onNewApplication={handleNewApplication}
-                onExportCsv={handleExportCsv}
-                onOpenOfferPrep={handleOpenOfferPrep}
-              />
-            )}
+        {currentTab === 'offers' && (
+          <OffersView
+            offers={offers}
+            onScrapeSearch={handleScrapeSearch}
+            onScrapeUrl={handleScrapeUrl}
+            onSyncRealOffers={handleSyncRealOffers}
+            onAddToTracker={(offer) => createAppFromOffer(offer, 'applied')}
+            onDirectApply={handleDirectApplyFromOffer}
+            onToggleFavorite={handleToggleFavorite}
+            onDismissOffer={handleDismissOffer}
+            onVerifyLinks={handleVerifyLinks}
+            onOfferImported={(newOffer) => {
+              setOffers((prev) =>
+                prev.some((o) => o.id === newOffer.id || o.url === newOffer.url)
+                  ? prev
+                  : [newOffer, ...prev]
+              );
+              loadDigest(windowDays);
+            }}
+            onOpenOfferPrep={(offer) => {
+              setPrepTargetOffer(offer);
+              setIsOfferPrepOpen(true);
+            }}
+            isScraping={isScraping}
+            isSyncing={isSyncing}
+          />
+        )}
 
-            {currentTab === 'bank-search' && (
-              <BankCareerSearchView
-                onDirectApply={handleDirectApplyFromOffer}
-                onOfferImported={handleOfferImported}
-                onOpenOfferPrep={handleOpenOfferPrep}
-              />
-            )}
+        {currentTab === 'suggestions' && (
+          <SuggestionsView
+            applicationsCount={applications.length}
+            onColdApply={handleDirectApplyFromOffer}
+            onQuickTrackBoutique={handleQuickTrackBoutique}
+          />
+        )}
 
-            {currentTab === 'scraper' && (
-              <JobScraperView
-                offers={offers}
-                onScrapeSearch={handleScrapeSearch}
-                onScrapeUrl={handleScrapeUrl}
-                onSyncRealOffers={handleSyncRealOffers}
-                onAddToTracker={handleAddOfferToTracker}
-                onDirectApply={handleDirectApplyFromOffer}
-                onToggleFavorite={handleToggleFavorite}
-                isScraping={isScraping}
-                isSyncing={isSyncing}
-                onOpenOfferPrep={handleOpenOfferPrep}
-              />
-            )}
+        {currentTab === 'tracker' && (
+          <ApplicationTracker
+            applications={applications}
+            onUpdateStatus={handleUpdateStatus}
+            onEditApplication={(app) => {
+              setEditingApplication(app);
+              setIsAppModalOpen(true);
+            }}
+            onDeleteApplication={handleDeleteApplication}
+            onDirectApply={handleDirectApplyFromApplication}
+            onNewApplication={() => {
+              setEditingApplication(null);
+              setIsAppModalOpen(true);
+            }}
+            onExportCsv={handleExportCsv}
+            onOpenOfferPrep={(offer) => {
+              setPrepTargetOffer(offer);
+              setIsOfferPrepOpen(true);
+            }}
+          />
+        )}
 
-            {currentTab === 'knn' && (
-              <KnnRecommenderView
-                recommendations={recommendations}
-                isLoading={isKnnLoading}
-                onOpenPreferences={() => setIsPrefModalOpen(true)}
-                onAddToTracker={handleAddOfferToTracker}
-                onDirectApply={handleDirectApplyFromOffer}
-                onRefreshKnn={loadRecommendations}
-                onOpenOfferPrep={handleOpenOfferPrep}
-              />
-            )}
+        {currentTab === 'prep' && <PrepAndCvView />}
 
-            {currentTab === 'interview-prep' && (
-              <InterviewPrepView />
-            )}
-
-            {currentTab === 'resources' && (
-              <ResourcesView />
-            )}
-
-            {currentTab === 'cv-audit' && (
-              <CVAuditView />
-            )}
-
-            {currentTab === 'preferences' && (
-              <PreferencesView
-                initialProfile={profile}
-                onProfileUpdated={(updated) => {
-                  setProfile(updated);
-                  loadRecommendations();
-                }}
-              />
-            )}
-
-            {currentTab === 'analytics' && (
-              <AnalyticsView analytics={analytics} isLoading={isAnalyticsLoading} />
-            )}
-          </div>
-        </main>
-      </div>
+        {currentTab === 'profile' && (
+          <ProfileAndAnalyticsView
+            profile={profile}
+            analytics={analytics}
+            offersCount={offers.length}
+            atsHealth={atsHealth}
+            isAnalyticsLoading={isAnalyticsLoading}
+            onProfileUpdated={(updated) => {
+              setProfile(updated);
+              handleRecalibrate();
+            }}
+            onRecalibrate={handleRecalibrate}
+            isRecalibrating={isRecalibrating}
+          />
+        )}
+      </main>
 
       {/* MODALS */}
       <ApplicationModal
@@ -500,13 +533,6 @@ export function App() {
         onClose={() => setIsAppModalOpen(false)}
         onSave={handleSaveApplication}
         initialData={editingApplication}
-      />
-
-      <PreferencesModal
-        isOpen={isPrefModalOpen}
-        onClose={() => setIsPrefModalOpen(false)}
-        profile={profile}
-        onSave={handleSavePreferences}
       />
 
       <ApplyActionModal
@@ -531,4 +557,5 @@ export function App() {
     </div>
   );
 }
+
 export default App;

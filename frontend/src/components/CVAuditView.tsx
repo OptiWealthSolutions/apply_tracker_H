@@ -30,10 +30,10 @@ export const CVAuditView: React.FC = () => {
 
   // Cover Letter Audit State
   const [letterText, setLetterText] = useState(
-    "Madame, Monsieur,\n\nActuellement en Master in Finance à l'EDHEC Business School (Financial Markets Track) après une classe préparatoire ENS Paris-Saclay D2, je vous soumets ma candidature pour le stage d'Assistant Trader Dérivés Actions au sein de votre desk.\n\nPassionné par la modélisation de volatilité et l'arbitrage systématique, j'ai développé la plateforme Horacle Hub en Python et MQL5, permettant l'analyse vectorisée de signaux macroéconomiques et de liquidité interbancaire (€STR, SOFR) ainsi que le backtesting de stratégies asymétriques à haute convexité.\n\nRigoureux et immédiatement opérationnel sur les outils quantitatifs (Python, NumPy, pandas, SQL), je souhaite apporter mes compétences analytiques à votre équipe de trading.\n\nJe me tiens à votre entière disposition pour un entretien technique à votre convenance.\n\nCordialement,\nLéo Lombardini\n+33 6 00 00 00 00 | leo.lombardini@edhec.com"
+    "Monsieur,\n\nActuellement étudiant en Master in Management (Finance Track) à l'EDHEC Business School après deux années de classe préparatoire D2, je vous propose ma candidature pour un stage de 6 mois à partir de juin 2027 au sein de votre équipe de gestion.\n\nChez Horacle Capital, je pilote les notes macroéconomiques hebdomadaires (taux directeurs, liquidité interbancaire €STR/SOFR, devises et bilans de banques centrales) et conçois en Python et MQL5 l'infrastructure d'analyse Horacle Hub pour structurer des thèses d'investissement disciplinées.\n\nJe serais ravi d'échanger avec vous lors d'un entretien afin de présenter mes travaux et ma motivation à rejoindre vos équipes.\n\nCordialement,\nLéo Lombardini\n07 85 42 69 11 | llombardini.leo@gmail.com"
   );
-  const [targetCompany, setTargetCompany] = useState('BNP Paribas');
-  const [targetRole, setTargetRole] = useState('Assistant Trader Equity Derivatives');
+  const [targetCompany, setTargetCompany] = useState('Monterra Wealth Management');
+  const [targetRole, setTargetRole] = useState('Assistant Portfolio Manager');
   const [letterAudit, setLetterAudit] = useState<CoverLetterAuditResponse | null>(null);
   const [isLetterLoading, setIsLetterLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);

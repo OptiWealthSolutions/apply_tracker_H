@@ -75,21 +75,88 @@ def build_profile_document(profile: UserProfile) -> Tuple[str, List[str], List[s
 def compute_knn_recommendations(
     offers: List[JobOffer],
     profile: UserProfile,
-    top_k: int = 6,
-    serendipity_k: int = 4
+    top_k: int = 8,
+    serendipity_k: int = 6,
+    db=None,
 ) -> RecommendationResponse:
     """
-    Computes K-Nearest Neighbors on job offers against user preference vector.
-    Separates results into:
-      1. Top Direct Matches (high similarity to explicit preferences)
-      2. Serendipity Gems (K-Nearest Neighbors in adjacent domains not in the user's primary explicit filter)
+    Computes recommendations using Qwen3-Embedding (256d) + Ridge Regression when DB is provided,
+    separating into Top Direct Matches and Serendipity Gems on adjacent desks.
     """
     if not offers:
         return RecommendationResponse(
             top_direct_matches=[],
             serendipity_gems=[],
             total_evaluated=0,
-            profile_summary=f"{profile.full_name} ({profile.school})"
+            profile_summary=f"{profile.full_name} ({profile.school})",
+            engine_name="qwen3-embedding:0.6b + Ridge",
+            ridge_trained_samples=0,
+        )
+
+    # Primary Engine: Qwen3-Embedding + Ridge Regression (OptiWealthSolutions/embedding_prop)
+    if db is not None:
+        from .embedding_engine import qwen_ridge_engine
+
+        engine_res = qwen_ridge_engine.score_offers(offers, profile, db, persist_scores=True)
+        scored_map = engine_res.get("scored", {})
+        _, target_roles, _, _ = build_profile_document(profile)
+        user_roles_lower = [r.lower() for r in target_roles]
+
+        direct_items: List[Tuple[float, RecommendationItem]] = []
+        serendipity_items: List[Tuple[float, RecommendationItem]] = []
+
+        for offer in offers:
+            info = scored_map.get(offer.id, {})
+            q_score = float(info.get("qwen_score", offer.qwen_score or 50.0))
+            sim_01 = round(min(0.99, max(0.05, q_score / 100.0)), 2)
+            reasons = info.get("match_reasons") or ["Score Qwen3 + Ridge"]
+            offer_resp = JobOfferResponse.model_validate(offer)
+
+            offer_title_desk = f"{offer.title} {offer.desk}".lower()
+            is_exact_role = any(role in offer_title_desk for role in user_roles_lower)
+
+            adjacent_desk = None
+            for primary_role in target_roles:
+                for adj in DESK_ADJACENCY_MAP.get(primary_role, []):
+                    if adj.lower() in offer_title_desk:
+                        adjacent_desk = adj
+                        break
+                if adjacent_desk:
+                    break
+
+            if is_exact_role:
+                direct_items.append((
+                    q_score,
+                    RecommendationItem(
+                        offer=offer_resp,
+                        similarity_score=sim_01,
+                        is_serendipity_gem=False,
+                        match_reasons=reasons,
+                        desk_adjacency_tag=None,
+                    ),
+                ))
+            else:
+                serendipity_items.append((
+                    q_score,
+                    RecommendationItem(
+                        offer=offer_resp,
+                        similarity_score=sim_01,
+                        is_serendipity_gem=True,
+                        match_reasons=reasons + ["Opportunité adjacente détectée par Qwen3"],
+                        desk_adjacency_tag=adjacent_desk or offer.desk,
+                    ),
+                ))
+
+        direct_items.sort(key=lambda x: x[0], reverse=True)
+        serendipity_items.sort(key=lambda x: x[0], reverse=True)
+
+        return RecommendationResponse(
+            top_direct_matches=[item for _, item in direct_items[:top_k]],
+            serendipity_gems=[item for _, item in serendipity_items[:serendipity_k]],
+            total_evaluated=len(offers),
+            profile_summary=f"{profile.full_name} | {profile.school} | {', '.join(target_roles[:4])}",
+            engine_name=engine_res.get("engine_name", "qwen3-embedding:0.6b + Ridge"),
+            ridge_trained_samples=int(engine_res.get("ridge_samples", 0)),
         )
 
     profile_doc, target_roles, target_locations, technical_skills = build_profile_document(profile)

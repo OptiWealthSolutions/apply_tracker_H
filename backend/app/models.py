@@ -30,6 +30,13 @@ class JobOffer(Base):
     scraped_at = Column(DateTime, default=datetime.utcnow)
     is_favorite = Column(Boolean, default=False)
     is_applied = Column(Boolean, default=False)
+    is_dismissed = Column(Boolean, default=False)
+    ats_platform = Column(String(50), nullable=True, default="direct")
+    qwen_score = Column(Float, nullable=True)
+    qwen_reasons = Column(Text, nullable=True)
+    hard_flags = Column(Text, nullable=True)
+    embedding_hash = Column(String(64), nullable=True)
+    embedding_blob = Column(LargeBinary, nullable=True)
     tags = Column(String(500), nullable=True)
     direct_apply_email = Column(String(255), nullable=True)
 
@@ -60,7 +67,8 @@ class Application(Base):
     url_status = Column(Integer, nullable=True, default=200)
     notes = Column(Text, nullable=True)
     cover_letter = Column(Text, nullable=True)
-    resume_version = Column(String(100), nullable=True, default="CV_Finance_Marche_2026.pdf")
+    resume_version = Column(String(100), nullable=True, default="CV_Leo_Lombardini.pdf")
+    status_history = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -110,6 +118,8 @@ class CVDocument(Base):
     __tablename__ = "cv_documents"
 
     id = Column(Integer, primary_key=True, index=True)
+    variant = Column(String(50), nullable=False, default="trading", index=True)
+    label = Column(String(150), nullable=False, default="CV A · Trading / Structuring / Sales")
     filename = Column(String(255), nullable=False, default="CV_Leo_Lombardini.pdf")
     mime_type = Column(String(100), nullable=False, default="application/pdf")
     file_size = Column(Integer, nullable=False)
@@ -117,4 +127,23 @@ class CVDocument(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     extracted_text = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
+
+
+class BoutiqueContact(Base):
+    __tablename__ = "boutique_contacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    boutique_id = Column(String(100), unique=True, nullable=False, index=True)
+    company_name = Column(String(255), nullable=False)
+    domain = Column(String(255), nullable=True)
+    best_email = Column(String(255), nullable=True)
+    email_confidence = Column(String(50), nullable=False, default="none")  # verified_site, pattern_inferred, none
+    emails_json = Column(Text, nullable=True, default="[]")
+    key_people_json = Column(Text, nullable=True, default="[]")
+    company_linkedin_url = Column(String(500), nullable=True)
+    linkedin_search_url = Column(String(1000), nullable=True)
+    mx_valid = Column(Boolean, default=False)
+    scraped_pages_count = Column(Integer, default=0)
+    last_scraped_at = Column(DateTime, default=datetime.utcnow)
+
 

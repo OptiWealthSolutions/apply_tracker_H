@@ -1,40 +1,181 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg: #ffffff;
+  --bg-card: #fafafa;
+  --bg-hover: #f4f4f5;
+  --border: #e5e5e5;
+  --border-focus: #999999;
+  --text: #111818;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  --accent: #000000;
+  --up: #16a34a;
+  --down: #dc2626;
+  --amber: #f59e0b;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom crisp scrollbar */
+@layer components {
+  /* Sharp square geometry across all cards and controls */
+  .sq-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0px;
+    transition: border-color 0.12s ease, background-color 0.12s ease;
+  }
+
+  .sq-card:hover {
+    border-color: #000000;
+  }
+
+  .sq-card-active {
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .sq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 0px;
+    background: #ffffff;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .sq-btn:hover:not(:disabled) {
+    border-color: #000000;
+    color: var(--text);
+  }
+
+  .sq-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .sq-btn-primary {
+    background: #000000;
+    color: #ffffff;
+    border-color: #000000;
+  }
+
+  .sq-btn-primary:hover:not(:disabled) {
+    background: #1a1a1a;
+    color: #ffffff;
+    border-color: #1a1a1a;
+  }
+
+  .sq-input {
+    font-size: 12px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 0px;
+    background: #ffffff;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.12s ease;
+  }
+
+  .sq-input:focus {
+    border-color: #000000;
+  }
+
+  .sq-input::placeholder {
+    color: var(--text-light);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #fafafa;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 3px;
+  background: #d4d4d4;
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #000000;
 }
 
-.font-mono-numbers {
-  font-family: 'JetBrains Mono', monospace;
-  font-feature-settings: 'tnum' on, 'lnum' on;
+/* Enforce monochrome square cards inside legacy sub-views */
+.bw-mono-override * {
+  border-radius: 0px !important;
 }
+
+.bw-mono-override .bg-blue-600,
+.bw-mono-override .bg-blue-700,
+.bw-mono-override .bg-indigo-600,
+.bw-mono-override .bg-slate-900 {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.bw-mono-override .bg-gradient-to-r,
+.bw-mono-override .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: #fafafa !important;
+  color: #111818 !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+.bw-mono-override .bg-gradient-to-r *,
+.bw-mono-override .bg-gradient-to-br * {
+  color: #111818 !important;
+}
+
+.bw-mono-override .bg-blue-50,
+.bw-mono-override .bg-indigo-50,
+.bw-mono-override .bg-purple-50 {
+  background-color: #fafafa !important;
+  border-color: #e5e5e5 !important;
+}
+
+.bw-mono-override .text-blue-600,
+.bw-mono-override .text-blue-700,
+.bw-mono-override .text-indigo-600 {
+  color: #111818 !important;
+}
+
+.bw-mono-override .border-blue-200,
+.bw-mono-override .border-blue-300,
+.bw-mono-override .border-blue-500 {
+  border-color: #000000 !important;
+}
+

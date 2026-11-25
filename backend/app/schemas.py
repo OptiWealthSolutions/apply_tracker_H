@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel
 
 
@@ -36,6 +36,11 @@ class JobOfferResponse(JobOfferBase):
     scraped_at: Optional[datetime] = None
     is_favorite: bool = False
     is_applied: bool = False
+    is_dismissed: bool = False
+    ats_platform: Optional[str] = "direct"
+    qwen_score: Optional[float] = None
+    qwen_reasons: Optional[str] = None
+    hard_flags: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -87,6 +92,7 @@ class ApplicationUpdate(BaseModel):
 
 class ApplicationResponse(ApplicationBase):
     id: int
+    status_history: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     offer: Optional[JobOfferResponse] = None
@@ -198,6 +204,43 @@ class RecommendationResponse(BaseModel):
     serendipity_gems: List[RecommendationItem]
     total_evaluated: int
     profile_summary: str
+    engine_name: str = "qwen3-embedding:0.6b + Ridge"
+    ridge_trained_samples: int = 0
+
+
+# --- DAILY DIGEST & ENGINE SCHEMAS ---
+class DigestOfferItem(BaseModel):
+    offer: JobOfferResponse
+    qwen_score: float
+    freshness_days: int
+    freshness_label: str
+    ats_platform: str
+    login_required: bool = False
+    match_reasons: List[str]
+    hard_flags: List[str]
+    is_serendipity_gem: bool = False
+
+
+class DigestResponse(BaseModel):
+    generated_at: str
+    window_days: int
+    target_start_period: str = "Juin 2027"
+    selected_start_filter: str = "all"
+    exclude_pure_quant: bool = True
+    selected_platform: str = "all"
+    no_login_only: bool = False
+    no_login_count: int = 0
+    platform_counts: Dict[str, int] = {}
+    engine_name: str
+    ollama_active: bool
+    ridge_samples: int
+    total_available: int
+    new_in_window_count: int
+    latest_offers: List[DigestOfferItem]
+    top_qwen_picks: List[DigestOfferItem]
+    serendipity_gems: List[DigestOfferItem]
+    follow_up_alerts_count: int
+    active_interviews_count: int
 
 
 # --- APPLICATION PITCH GENERATOR SCHEMAS ---
@@ -206,6 +249,12 @@ class ApplyPitchRequest(BaseModel):
     job_title: str
     company: str
     desk: str
+    direct_email: Optional[str] = None
+    location: Optional[str] = "Paris"
+    contact_name: Optional[str] = None
+    offer_description: Optional[str] = None
+    offer_requirements: Optional[str] = None
+    use_llm: bool = True
     candidate_profile_override: Optional[dict] = None
 
 
@@ -215,6 +264,7 @@ class ApplyPitchResponse(BaseModel):
     quick_email_pitch: str
     mailto_url: str
     recommended_portfolio_bullets: List[str]
+    generated_by: str = "template"
     cv_view_url: Optional[str] = None
     cv_download_url: Optional[str] = None
 
@@ -265,6 +315,8 @@ class LiveBankSearchResultItem(BaseModel):
 # --- CV HOSTING SCHEMAS ---
 class CVInfoResponse(BaseModel):
     id: int
+    variant: str = "trading"
+    label: str = "CV A · Trading / Structuring / Sales"
     filename: str
     mime_type: str
     file_size: int
